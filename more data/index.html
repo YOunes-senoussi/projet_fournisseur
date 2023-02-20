@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Document</title>
+</head>
+
+<body>
+  <h1>Test Upload</h1>
+  <form id="myForm">
+    <input type="file" id="inputFile" /><br />
+    <button type="submit">SEND</button>
+  </form>
+
+  <script>
+    const form = document.getElementById("myForm");
+    const inputFile = document.getElementById("inputFile");
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const endPoint = "http://127.0.0.1:8000/test_post/";
+      const fd = new FormData();
+
+      fd.append("name 1", inputFile);
+      fd.append("key 2", "value 2");
+
+      fetch(endPoint, {
+        method: "post",
+        body: fd,
+      })
+        .catch(console.error)
+        .finally((response) => console.log(response));
+    });
+  </script>
+
+  <div id="Adrar">
+    Adrar,
+    Aoulef,
+    Daïra d'Aougrout,
+    Bordj Badji Mokhtar,
+    Charouine,
+    Fenoughil,
+    Reggane,
+    Timimoun,
+    Tinerkouk,
+    Tsabit,
+    Zaouiet Kounta,
+
+  </div>
+  
+  <div id="Laghouat">
+    Aflou,
+    Aïn Mahdi,
+    Brida,
+    El Ghicha,
+    Gueltet Sidi Saâd,
+    Hassi R'Mel,
+    Ksar El Hirane,
+    Laghouat,
+    Oued Morra,
+    Sidi Makhlouf,
+  </div>
+
+</body>
+
+</html>
