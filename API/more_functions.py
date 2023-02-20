@@ -16,7 +16,6 @@ annotate_funcs = {
 }
 # ################ 
 
-
 # Create your views here.
 # ################ some variables
 COUPON_FOUND = 0
