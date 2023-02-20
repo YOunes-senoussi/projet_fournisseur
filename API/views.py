@@ -91,13 +91,13 @@ def get_product(request: Request, product_id: int = None):
             }
         )
 
-    products = Product.objects.filter(**filter_fields).distinct()
+    products = Product.objects.filter(**filter_fields).distinct().values(*values).annotate(**annotations)
     if order_by is not None:
         products = products.order_by(order_by)
 
     products = products[offset: offset + limit]
 
-    products = products.values(*values).annotate(**annotations)
+    products = products
 
     return Response({"products": products})
 
@@ -380,3 +380,4 @@ tables = {
     "category": Category,
     "packtype": PackType,
 }
+

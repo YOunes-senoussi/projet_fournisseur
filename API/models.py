@@ -239,6 +239,7 @@ class Group(models.Model):
 
 class Category(models.Model):
     name = models.CharField(max_length=100, null=True, blank=True)
+    image_url = models.CharField(max_length=100, null=True, blank=True)
 
     # reverse relationships: [product]
 
