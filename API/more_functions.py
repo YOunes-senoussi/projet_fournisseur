@@ -7,7 +7,7 @@ import random, string, itertools
 
 from API.models import *
 # ################ 
-annotate_funcs = {
+calcul_classes = {
     "avg": Avg,
     "max": Max,
     "min": Min,
@@ -289,40 +289,48 @@ def create_order(request: Request):
 # #####################
 def extract_params(request: Request):
 
-    params = request.query_params.copy()
+    params = request.query_params
+    values = params.getlist("values", [])
 
-    values = params.pop("values", [])
+    annotations = get_annotations(params.getlist("annotate", []))
+    aggregations = get_annotations(params.getlist("aggregate", []))
+
+    filters = dict(list(map(lambda el:el.split("="), params.getlist("filter", []))))
+
+    order_by = params.get("order_by", "pk")
+    offset = int(params.get("offset", 0))
+    limit = int(params.get("limit", 1_000_000))
+
+    return order_by, offset, limit, filters, values, annotations, aggregations
+
+
+def get_annotations(annot_list: list[str]):
 
     annotations = {}
-    for an in params.pop("annotations", []):
-
+    for an in annot_list:
+        
         split = an.lower().split(",")
+
         if len(split) == 3:
-            func_name, field, field_name = split
+            class_name, field, field_name = split
         elif len(split) == 2:
-            func_name, field = split
-            field_name = field
+            class_name, field = split
+            field_name = f"{field}__{class_name}"
         else:
             continue
 
-        func_name = func_name.strip()
+        class_name = class_name.strip()
         field = field.strip()
         field_name = field_name.strip()
 
-        cls = annotate_funcs[func_name]
+        cls = calcul_classes[class_name]
         annotations[field_name] = cls(field)
-
-    params = params.dict()
-
-    order_by = params.pop("order_by", None)
-    offset = int(params.pop("offset", 0))
-    limit = int(params.pop("limit", 1_000_000))
-
-    filter_fields = params
-
-    return order_by, offset, limit, filter_fields, values, annotations
+    
+    return annotations
 
 # #####################
+
+# order_by is None: annotation
 
 # 1 - unchecked
 # 2 - checked:
