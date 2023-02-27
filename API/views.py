@@ -6,6 +6,8 @@ from rest_framework.decorators import api_view
 from API.models import *
 from API.more_functions import extract_params
 
+import json
+
 # ##################### Store Views
 @api_view(["GET", "POST", "PUT", "DELETE"])
 def store_view(request: Request, store_id: int = None):
@@ -357,6 +359,181 @@ def get_packtype(request: Request, packtype_id: int = None):
     
     return Response({"packtypes": packtypes})
 
+# ##################### CouponCount Views
+@api_view(["GET", "POST", "PUT", "DELETE"])
+def couponcount_view(request: Request, couponcount_id: int = None):
+
+    if (request.method == "GET"):
+        return get_couponcount(request=request, couponcount_id=couponcount_id)
+
+    return Response("Nothing")
+
+
+def get_couponcount(request: Request, couponcount_id: int = None):
+
+    order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
+
+    if couponcount_id is not None:
+        couponcounts = CouponCount.objects.filter(pk=couponcount_id).values(*values).annotate(**annotations)
+
+        if aggregations:
+            return Response({"couponcount": couponcounts.first(), **couponcounts.aggregate(**aggregations)})
+        
+        return Response({"couponcount": couponcounts.first()})
+
+    couponcounts = (
+        CouponCount.objects
+            .filter(**filters).distinct()
+            .values(*values).annotate(**annotations)
+            .order_by(order_by)
+    )
+    couponcounts = couponcounts[offset: offset + limit]
+
+    if aggregations:
+        return Response({"couponcounts": couponcounts, **couponcounts.aggregate(**aggregations)})
+    
+    return Response({"couponcounts": couponcounts})
+
+# ##################### OrderState Views
+@api_view(["GET", "POST", "PUT", "DELETE"])
+def orderstate_view(request: Request, orderstate_id: int = None):
+
+    if (request.method == "GET"):
+        return get_orderstate(request=request, orderstate_id=orderstate_id)
+
+    return Response("Nothing")
+
+
+def get_orderstate(request: Request, orderstate_id: int = None):
+
+    order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
+
+    if orderstate_id is not None:
+        orderstates = OrderState.objects.filter(pk=orderstate_id).values(*values).annotate(**annotations)
+
+        if aggregations:
+            return Response({"orderstate": orderstates.first(), **orderstates.aggregate(**aggregations)})
+        
+        return Response({"orderstate": orderstates.first()})
+
+    orderstates = (
+        OrderState.objects
+            .filter(**filters).distinct()
+            .values(*values).annotate(**annotations)
+            .order_by(order_by)
+    )
+    orderstates = orderstates[offset: offset + limit]
+
+    if aggregations:
+        return Response({"orderstates": orderstates, **orderstates.aggregate(**aggregations)})
+    
+    return Response({"orderstates": orderstates})
+
+# ##################### Cart Views
+@api_view(["GET", "POST", "PUT", "DELETE"])
+def cart_view(request: Request, cart_id: int = None):
+
+    if (request.method == "GET"):
+        return get_cart(request=request, cart_id=cart_id)
+
+    return Response("Nothing")
+
+
+def get_cart(request: Request, cart_id: int = None):
+
+    order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
+
+    if cart_id is not None:
+        carts = Cart.objects.filter(pk=cart_id).values(*values).annotate(**annotations)
+
+        if aggregations:
+            return Response({"cart": carts.first(), **carts.aggregate(**aggregations)})
+        
+        return Response({"cart": carts.first()})
+
+    carts = (
+        Cart.objects
+            .filter(**filters).distinct()
+            .values(*values).annotate(**annotations)
+            .order_by(order_by)
+    )
+    carts = carts[offset: offset + limit]
+
+    if aggregations:
+        return Response({"carts": carts, **carts.aggregate(**aggregations)})
+    
+    return Response({"carts": carts})
+
+# ##################### CartItem Views
+@api_view(["GET", "POST", "PUT", "DELETE"])
+def cartitem_view(request: Request, cartitem_id: int = None):
+
+    if (request.method == "GET"):
+        return get_cartitem(request=request, cartitem_id=cartitem_id)
+
+    return Response("Nothing")
+
+
+def get_cartitem(request: Request, cartitem_id: int = None):
+
+    order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
+
+    if cartitem_id is not None:
+        cartitems = CartItem.objects.filter(pk=cartitem_id).values(*values).annotate(**annotations)
+
+        if aggregations:
+            return Response({"cartitem": cartitems.first(), **cartitems.aggregate(**aggregations)})
+        
+        return Response({"cartitem": cartitems.first()})
+
+    cartitems = (
+        CartItem.objects
+            .filter(**filters).distinct()
+            .values(*values).annotate(**annotations)
+            .order_by(order_by)
+    )
+    cartitems = cartitems[offset: offset + limit]
+
+    if aggregations:
+        return Response({"cartitems": cartitems, **cartitems.aggregate(**aggregations)})
+    
+    return Response({"cartitems": cartitems})
+
+# ##################### Notification Views
+@api_view(["GET", "POST", "PUT", "DELETE"])
+def notification_view(request: Request, notification_id: int = None):
+
+    if (request.method == "GET"):
+        return get_notification(request=request, notification_id=notification_id)
+
+    return Response("Nothing")
+
+
+def get_notification(request: Request, notification_id: int = None):
+
+    order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
+
+    if notification_id is not None:
+        notifications = OrderNotification.objects.filter(pk=notification_id).values(*values).annotate(**annotations)
+
+        if aggregations:
+            return Response({"notification": notifications.first(), **notifications.aggregate(**aggregations)})
+        
+        return Response({"notification": notifications.first()})
+
+    notifications = (
+        OrderNotification.objects
+            .filter(**filters).distinct()
+            .values(*values).annotate(**annotations)
+            .order_by(order_by)
+    )
+    notifications = notifications[offset: offset + limit]
+
+    if aggregations:
+        return Response({"notifications": notifications, **notifications.aggregate(**aggregations)})
+    
+    return Response({"notifications": notifications})
+
 # ################ Test
 @api_view(["GET", "POST", "PUT", "DELETE"])
 def test_view(request: Request):
@@ -364,11 +541,14 @@ def test_view(request: Request):
     print("-"*100)
     print(f"{request.query_params=}")
     # print(f"{request.data=}")
-    print("-"*100)
-    print(request.query_params.getlist("filter"))
-    print(dict(list(map(lambda el: el.split("="), request.query_params.getlist("filter")))))
-    print(request.query_params.get("annotate"))
-    print("-"*100)
+    # print("-"*100)
+    # param = request.query_params.get("json")
+    # param = json.loads(param)
+    # print(json.dumps(param, indent=0))
+    # print("-"*100)
+    # print(request.query_params.getlist("filter"))
+    # print(dict(list(map(lambda el: el.split("="), request.query_params.getlist("filter")))))
+    # print("-"*100)
 
     return Response("nothing")
 

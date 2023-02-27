@@ -7,13 +7,18 @@ admin.site.register(
     (
         Store,
         Client,
-        Product,
-        Coupon,
-        Order,
-        OrderCoupon,
-        OrderItem,
         Group,
+        Product,
         Category,
         PackType,
+        Coupon,
+        CouponCount,
+        Order,
+        OrderState,
+        OrderCoupon,
+        OrderItem,
+        Cart,
+        CartItem,
+        OrderNotification,
     )
 )

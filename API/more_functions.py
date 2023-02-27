@@ -13,6 +13,7 @@ calcul_classes = {
     "min": Min,
     "count": Count,
     "sum": Sum,
+    "value": Value,
 }
 # ################ 
 
@@ -64,6 +65,7 @@ def check_coupon(c_string: str, store_id: int, client_id: int):
             "code_text": "COUPON_NOT_ACTIVE",
         }
     
+    # this doesn't work anymore
     if coupon.ordercoupons.filter(order__client__id=client_id).count() >= coupon.max_nbr_uses:
         return {
             "status": "fail",
@@ -251,7 +253,9 @@ def create_order(request: Request):
 
     total_price = 0
     for product in products:
-        product["new_price"] = round((product["price"] * (1 - (product["discount"]/100))), 2)
+        product["new_price"] = round(
+            (product["price"] * (1 - (product["discount"]/100))) * product["quantity"], 2
+        )
         total_price += product["price"]
 
     new_ordre = Order.objects.create(
@@ -295,7 +299,7 @@ def extract_params(request: Request):
     annotations = get_annotations(params.getlist("annotate", []))
     aggregations = get_annotations(params.getlist("aggregate", []))
 
-    filters = dict(list(map(lambda el:el.split("="), params.getlist("filter", []))))
+    filters = dict(list(map(lambda el:el.split(":"), params.getlist("filter", []))))
 
     order_by = params.get("order_by", "pk")
     offset = int(params.get("offset", 0))
@@ -304,7 +308,7 @@ def extract_params(request: Request):
     return order_by, offset, limit, filters, values, annotations, aggregations
 
 
-def get_annotations(annot_list: list[str]):
+def get_annotations(annot_list: list):
 
     annotations = {}
     for an in annot_list:
@@ -330,14 +334,15 @@ def get_annotations(annot_list: list[str]):
 
 # #####################
 
-# order_by is None: annotation
+# print(Store.objects.first().notifications.all())
+# #####################
 
 # 1 - unchecked
 # 2 - checked:
 #     not accepted (reponse : message d'err)
 #     accepted:
 #       dilivery
-#         false (witing)
+#         false (waiting)
 #         true -> lahget(cloturé) / lala(in the way)
 
 # 3 - cancel // 
@@ -357,3 +362,4 @@ def get_annotations(annot_list: list[str]):
 
 # 120*20 + 1000*10
 # 12400 -1240 = 11160 
+
