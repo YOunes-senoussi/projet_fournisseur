@@ -1,0 +1,308 @@
+[
+  {
+    "id": 1,
+    "count": 1,
+    "client_id": 15,
+    "coupon_id": 24
+  },
+  {
+    "id": 2,
+    "count": 1,
+    "client_id": 18,
+    "coupon_id": 24
+  },
+  {
+    "id": 3,
+    "count": 1,
+    "client_id": 15,
+    "coupon_id": 25
+  },
+  {
+    "id": 4,
+    "count": 1,
+    "client_id": 18,
+    "coupon_id": 25
+  },
+  {
+    "id": 5,
+    "count": 1,
+    "client_id": 15,
+    "coupon_id": 26
+  },
+  {
+    "id": 6,
+    "count": 1,
+    "client_id": 18,
+    "coupon_id": 26
+  },
+  {
+    "id": 7,
+    "count": 1,
+    "client_id": 4,
+    "coupon_id": 30
+  },
+  {
+    "id": 8,
+    "count": 1,
+    "client_id": 4,
+    "coupon_id": 31
+  },
+  {
+    "id": 9,
+    "count": 1,
+    "client_id": 4,
+    "coupon_id": 32
+  },
+  {
+    "id": 10,
+    "count": 1,
+    "client_id": 14,
+    "coupon_id": 33
+  },
+  {
+    "id": 11,
+    "count": 1,
+    "client_id": 14,
+    "coupon_id": 34
+  },
+  {
+    "id": 12,
+    "count": 1,
+    "client_id": 13,
+    "coupon_id": 36
+  },
+  {
+    "id": 13,
+    "count": 1,
+    "client_id": 13,
+    "coupon_id": 37
+  },
+  {
+    "id": 14,
+    "count": 1,
+    "client_id": 19,
+    "coupon_id": 39
+  },
+  {
+    "id": 15,
+    "count": 1,
+    "client_id": 18,
+    "coupon_id": 40
+  },
+  {
+    "id": 16,
+    "count": 1,
+    "client_id": 19,
+    "coupon_id": 40
+  },
+  {
+    "id": 17,
+    "count": 1,
+    "client_id": 19,
+    "coupon_id": 41
+  },
+  {
+    "id": 18,
+    "count": 1,
+    "client_id": 16,
+    "coupon_id": 52
+  },
+  {
+    "id": 19,
+    "count": 1,
+    "client_id": 18,
+    "coupon_id": 53
+  },
+  {
+    "id": 20,
+    "count": 1,
+    "client_id": 9,
+    "coupon_id": 54
+  },
+  {
+    "id": 21,
+    "count": 1,
+    "client_id": 9,
+    "coupon_id": 55
+  },
+  {
+    "id": 22,
+    "count": 1,
+    "client_id": 5,
+    "coupon_id": 56
+  },
+  {
+    "id": 23,
+    "count": 1,
+    "client_id": 9,
+    "coupon_id": 56
+  },
+  {
+    "id": 24,
+    "count": 1,
+    "client_id": 7,
+    "coupon_id": 57
+  },
+  {
+    "id": 25,
+    "count": 1,
+    "client_id": 7,
+    "coupon_id": 58
+  },
+  {
+    "id": 26,
+    "count": 2,
+    "client_id": 20,
+    "coupon_id": 58
+  },
+  {
+    "id": 27,
+    "count": 1,
+    "client_id": 7,
+    "coupon_id": 59
+  },
+  {
+    "id": 28,
+    "count": 1,
+    "client_id": 4,
+    "coupon_id": 62
+  },
+  {
+    "id": 29,
+    "count": 1,
+    "client_id": 13,
+    "coupon_id": 66
+  },
+  {
+    "id": 30,
+    "count": 1,
+    "client_id": 20,
+    "coupon_id": 66
+  },
+  {
+    "id": 31,
+    "count": 1,
+    "client_id": 20,
+    "coupon_id": 67
+  },
+  {
+    "id": 32,
+    "count": 1,
+    "client_id": 13,
+    "coupon_id": 68
+  },
+  {
+    "id": 33,
+    "count": 1,
+    "client_id": 20,
+    "coupon_id": 68
+  },
+  {
+    "id": 34,
+    "count": 1,
+    "client_id": 5,
+    "coupon_id": 69
+  },
+  {
+    "id": 35,
+    "count": 1,
+    "client_id": 5,
+    "coupon_id": 70
+  },
+  {
+    "id": 36,
+    "count": 1,
+    "client_id": 2,
+    "coupon_id": 72
+  },
+  {
+    "id": 37,
+    "count": 1,
+    "client_id": 5,
+    "coupon_id": 72
+  },
+  {
+    "id": 38,
+    "count": 1,
+    "client_id": 9,
+    "coupon_id": 72
+  },
+  {
+    "id": 39,
+    "count": 1,
+    "client_id": 13,
+    "coupon_id": 72
+  },
+  {
+    "id": 40,
+    "count": 1,
+    "client_id": 5,
+    "coupon_id": 73
+  },
+  {
+    "id": 41,
+    "count": 1,
+    "client_id": 13,
+    "coupon_id": 73
+  },
+  {
+    "id": 42,
+    "count": 1,
+    "client_id": 2,
+    "coupon_id": 74
+  },
+  {
+    "id": 43,
+    "count": 1,
+    "client_id": 5,
+    "coupon_id": 74
+  },
+  {
+    "id": 44,
+    "count": 1,
+    "client_id": 13,
+    "coupon_id": 74
+  },
+  {
+    "id": 45,
+    "count": 1,
+    "client_id": 10,
+    "coupon_id": 78
+  },
+  {
+    "id": 46,
+    "count": 1,
+    "client_id": 12,
+    "coupon_id": 78
+  },
+  {
+    "id": 47,
+    "count": 1,
+    "client_id": 14,
+    "coupon_id": 78
+  },
+  {
+    "id": 48,
+    "count": 1,
+    "client_id": 10,
+    "coupon_id": 79
+  },
+  {
+    "id": 49,
+    "count": 1,
+    "client_id": 12,
+    "coupon_id": 79
+  },
+  {
+    "id": 50,
+    "count": 1,
+    "client_id": 14,
+    "coupon_id": 79
+  },
+  {
+    "id": 51,
+    "count": 1,
+    "client_id": 14,
+    "coupon_id": 80
+  }
+]

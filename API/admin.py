@@ -19,6 +19,6 @@ admin.site.register(
         OrderItem,
         Cart,
         CartItem,
-        OrderNotification,
+        Notification,
     )
 )

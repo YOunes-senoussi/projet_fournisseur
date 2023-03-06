@@ -1,9 +1,10 @@
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.decorators import api_view
-import time, json
 from django.db.models import F, Case, Value, When, Q, Avg, Max, Min, Count, Sum
-import random, string, itertools
+from django.contrib.postgres.aggregates import ArrayAgg
+import base64, io
+from PIL import Image
 
 from API.models import *
 # ################ 
@@ -139,7 +140,7 @@ def check_product(product_id: int, quantity: int, store_id: int):
             "code_text": "WRONG_STORE",
         }
 
-    if not product.is_available:
+    if product.is_available is False:
         return {
             "status": "fail",
             "id": product_id,
@@ -294,7 +295,7 @@ def create_order(request: Request):
 def extract_params(request: Request):
 
     params = request.query_params
-    values = params.getlist("values", [])
+    values = params.getlist("value", [])
 
     annotations = get_annotations(params.getlist("annotate", []))
     aggregations = get_annotations(params.getlist("aggregate", []))
@@ -333,8 +334,15 @@ def get_annotations(annot_list: list):
     return annotations
 
 # #####################
+def save_encoded_image(encoded_image: str, image_path: str):
 
-# print(Store.objects.first().notifications.all())
+    decoded_image = base64.b64decode(bytes(encoded_image, encoding="utf-8"))
+    image = Image.open(io.BytesIO(decoded_image))
+    full_path = f"{image_path}.{image.format}"
+    image.save(full_path)
+
+    return full_path
+
 # #####################
 
 # 1 - unchecked
@@ -362,4 +370,3 @@ def get_annotations(annot_list: list):
 
 # 120*20 + 1000*10
 # 12400 -1240 = 11160 
-

@@ -1,556 +1,679 @@
-from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.request import Request
+from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 
 from API.models import *
 from API.more_functions import extract_params
 
-import json
-
 # ##################### Store Views
-@api_view(["GET", "POST", "PUT", "DELETE"])
-def store_view(request: Request, store_id: int = None):
+class StoreView(APIView):
+    
+    def get(self, request: Request, store_id: int = None):
 
-    if (request.method == "GET"):
-        return get_store(request=request, store_id=store_id)
+        order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
 
-    return Response("Nothing")
+        if store_id is not None:
+            stores = Store.objects.filter(pk=store_id).values(*values).annotate(**annotations)
 
+            if aggregations:
+                return Response({"store": stores.first(), **stores.aggregate(**aggregations)})
+            
+            return Response({"store": stores.first()})
 
-def get_store(request: Request, store_id: int = None):
-
-    order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
-
-    if store_id is not None:
-        stores = Store.objects.filter(pk=store_id).values(*values).annotate(**annotations)
+        stores = (
+            Store.objects
+                .filter(**filters).distinct()
+                .values(*values).annotate(**annotations)
+                .order_by(order_by)
+        )
+        stores = stores[offset: offset + limit]
 
         if aggregations:
-            return Response({"store": stores.first(), **stores.aggregate(**aggregations)})
+            return Response({"stores": stores, **stores.aggregate(**aggregations)})
         
-        return Response({"store": stores.first()})
+        return Response({"stores": stores})
 
-    stores = (
-        Store.objects
-            .filter(**filters).distinct()
-            .values(*values).annotate(**annotations)
-            .order_by(order_by)
-    )
-    stores = stores[offset: offset + limit]
+    def post(self, request: Request, store_id: int = None):
 
-    if aggregations:
-        return Response({"stores": stores, **stores.aggregate(**aggregations)})
+        new_store = Store.objects.create(**request.data)
+
+        return Response(new_store.id)
     
-    return Response({"stores": stores})
+    def put(self, request: Request, store_id: int = None):
+
+        Store.objects.filter(pk=store_id).update(**request.data)
+
+        return Response("success")
+    
+    def delete(self, request: Request, store_id: int = None):
+
+        return Response(Store.objects.get(pk=store_id).delete())
 
 # ##################### Client Views
-@api_view(["GET", "POST", "PUT", "DELETE"])
-def client_view(request: Request, client_id: int = None):
+class ClientView(APIView):
 
-    if (request.method == "GET"):
-        return get_client(request=request, client_id=client_id)
+    def get(self, request: Request, client_id: int = None):
 
-    return Response("Nothing")
+        order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
 
+        if client_id is not None:
+            clients = Client.objects.filter(pk=client_id).values(*values).annotate(**annotations)
 
-def get_client(request: Request, client_id: int = None):
+            if aggregations:
+                return Response({"client": clients.first(), **clients.aggregate(**aggregations)})
+            
+            return Response({"client": clients.first()})
 
-    order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
-
-    if client_id is not None:
-        clients = Client.objects.filter(pk=client_id).values(*values).annotate(**annotations)
+        clients = (
+            Client.objects
+                .filter(**filters).distinct()
+                .values(*values).annotate(**annotations)
+                .order_by(order_by)
+        )
+        clients = clients[offset: offset + limit]
 
         if aggregations:
-            return Response({"client": clients.first(), **clients.aggregate(**aggregations)})
+            return Response({"clients": clients, **clients.aggregate(**aggregations)})
         
-        return Response({"client": clients.first()})
+        return Response({"clients": clients})
 
-    clients = (
-        Client.objects
-            .filter(**filters).distinct()
-            .values(*values).annotate(**annotations)
-            .order_by(order_by)
-    )
-    clients = clients[offset: offset + limit]
+    def post(self, request: Request, client_id: int = None):
 
-    if aggregations:
-        return Response({"clients": clients, **clients.aggregate(**aggregations)})
+        new_client = Client.objects.create(**request.data)
+
+        return Response(new_client.id)
     
-    return Response({"clients": clients})
+    def put(self, request: Request, client_id: int = None):
+
+        Client.objects.filter(pk=client_id).update(**request.data)
+
+        return Response("success")
+    
+    def delete(self, request: Request, client_id: int = None):
+        
+        return Response(Client.objects.get(pk=client_id).delete())
+
 
 # ##################### Product Views
-@api_view(["GET", "POST", "PUT", "DELETE"])
-def product_view(request: Request, product_id: int = None):
+class ProductView(APIView):
 
-    if (request.method == "GET"):
-        return get_product(request=request, product_id=product_id)
+    def get(self, request: Request, product_id: int = None):
 
-    return Response("Nothing")
+        order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
 
+        if product_id is not None:
+            products = Product.objects.filter(pk=product_id).values(*values).annotate(**annotations)
 
-def get_product(request: Request, product_id: int = None):
+            if aggregations:
+                return Response({"product": products.first(), **products.aggregate(**aggregations)})
+            
+            return Response({"product": products.first()})
 
-    order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
-
-    if product_id is not None:
-        products = Product.objects.filter(pk=product_id).values(*values).annotate(**annotations)
+        products = (
+            Product.objects
+                .filter(**filters).distinct()
+                .values(*values).annotate(**annotations)
+                .order_by(order_by)
+        )
+        products = products[offset: offset + limit]
 
         if aggregations:
-            return Response({"product": products.first(), **products.aggregate(**aggregations)})
+            return Response({"products": products, **products.aggregate(**aggregations)})
         
-        return Response({"product": products.first()})
+        return Response({"products": products})
 
-    products = (
-        Product.objects
-            .filter(**filters).distinct()
-            .values(*values).annotate(**annotations)
-            .order_by(order_by)
-    )
-    products = products[offset: offset + limit]
+    def post(self, request: Request, product_id: int = None):
 
-    if aggregations:
-        return Response({"products": products, **products.aggregate(**aggregations)})
+        new_product = Product.objects.create(**request.data)
+
+        return Response(new_product.id)
     
-    return Response({"products": products})
+    def put(self, request: Request, product_id: int = None):
+
+        Product.objects.filter(pk=product_id).update(**request.data)
+
+        return Response("success")
+    
+    def delete(self, request: Request, product_id: int = None):
+        
+        return Response(Product.objects.get(pk=product_id).delete())
 
 # ##################### Coupon Views
-@api_view(["GET", "POST", "PUT", "DELETE"])
-def coupon_view(request: Request, coupon_id: int = None):
+class CouponView(APIView):
 
-    if (request.method == "GET"):
-        return get_coupon(request=request, coupon_id=coupon_id)
+    def get(self, request: Request, coupon_id: int = None):
 
-    return Response("Nothing")
+        order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
 
+        if coupon_id is not None:
+            coupons = Coupon.objects.filter(pk=coupon_id).values(*values).annotate(**annotations)
 
-def get_coupon(request: Request, coupon_id: int = None):
+            if aggregations:
+                return Response({"coupon": coupons.first(), **coupons.aggregate(**aggregations)})
+            
+            return Response({"coupon": coupons.first()})
 
-    order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
-
-    if coupon_id is not None:
-        coupons = Coupon.objects.filter(pk=coupon_id).values(*values).annotate(**annotations)
-
-        if aggregations:
-            return Response({"coupon": coupons.first(), **coupons.aggregate(**aggregations)})
-        
-        return Response({"coupon": coupons.first()})
-
-    coupons = (
-        Coupon.objects
-            .filter(**filters).distinct()
-            .values(*values).annotate(**annotations)
-            .order_by(order_by)
-    )
-    coupons = coupons[offset: offset + limit]
-
-    if aggregations:
-        return Response({"coupons": coupons, **coupons.aggregate(**aggregations)})
-    
-    return Response({"coupons": coupons})
-
-# ##################### Order View
-@api_view(["GET", "POST", "PUT", "DELETE"])
-def order_view(request: Request, order_id: int = None):
-
-    if (request.method == "GET"):
-        return get_order(request=request, order_id=order_id)
-
-    return Response("Nothing")
-
-
-def get_order(request: Request, order_id: int = None):
-
-    order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
-
-    if order_id is not None:
-        orders = Order.objects.filter(pk=order_id).values(*values).annotate(**annotations)
+        coupons = (
+            Coupon.objects
+                .filter(**filters).distinct()
+                .values(*values).annotate(**annotations)
+                .order_by(order_by)
+        )
+        coupons = coupons[offset: offset + limit]
 
         if aggregations:
-            return Response({"order": orders.first(), **orders.aggregate(**aggregations)})
+            return Response({"coupons": coupons, **coupons.aggregate(**aggregations)})
         
-        return Response({"order": orders.first()})
+        return Response({"coupons": coupons})
 
-    orders = (
-        Order.objects
-            .filter(**filters).distinct()
-            .values(*values).annotate(**annotations)
-            .order_by(order_by)
-    )
-    orders = orders[offset: offset + limit]
+    def post(self, request: Request, coupon_id: int = None):
 
-    if aggregations:
-        return Response({"orders": orders, **orders.aggregate(**aggregations)})
+        new_coupon = Coupon.objects.create(**request.data)
+
+        return Response(new_coupon.id)
     
-    return Response({"orders": orders})
+    def put(self, request: Request, coupon_id: int = None):
+        
+        Coupon.objects.filter(pk=coupon_id).update(**request.data)
 
-# ##################### OrderCoupon View
-@api_view(["GET", "POST", "PUT", "DELETE"])
-def ordercoupon_view(request: Request, ordercoupon_id: int = None):
+        return Response("success")
 
-    if (request.method == "GET"):
-        return get_ordercoupon(request=request, ordercoupon_id=ordercoupon_id)
-        # return get_entries(request=request, entry_id=ordercoupon_id, model_name="OrderCoupon")
+    def delete(self, request: Request, coupon_id: int = None):
+        
+        return Response(Coupon.objects.get(pk=coupon_id).delete())
 
-    return Response("Nothing")
+# ##################### Order Views
+class OrderView(APIView):
 
+    def get(self, request: Request, order_id: int = None):
 
-def get_ordercoupon(request: Request, ordercoupon_id: int = None):
+        order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
 
-    order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
+        if order_id is not None:
+            orders = Order.objects.filter(pk=order_id).values(*values).annotate(**annotations)
 
-    if ordercoupon_id is not None:
-        ordercoupons = OrderCoupon.objects.filter(pk=ordercoupon_id).values(*values).annotate(**annotations)
+            if aggregations:
+                return Response({"order": orders.first(), **orders.aggregate(**aggregations)})
+            
+            return Response({"order": orders.first()})
+
+        orders = (
+            Order.objects
+                .filter(**filters).distinct()
+                .values(*values).annotate(**annotations)
+                .order_by(order_by)
+        )
+        orders = orders[offset: offset + limit]
 
         if aggregations:
-            return Response({"ordercoupon": ordercoupons.first(), **ordercoupons.aggregate(**aggregations)})
+            return Response({"orders": orders, **orders.aggregate(**aggregations)})
         
-        return Response({"ordercoupon": ordercoupons.first()})
+        return Response({"orders": orders})
 
-    ordercoupons = (
-        OrderCoupon.objects
-            .filter(**filters).distinct()
-            .values(*values).annotate(**annotations)
-            .order_by(order_by)
-    )
-    ordercoupons = ordercoupons[offset: offset + limit]
+    def post(self, request: Request, order_id: int = None):
 
-    if aggregations:
-        return Response({"ordercoupons": ordercoupons, **ordercoupons.aggregate(**aggregations)})
+        new_order = Order.objects.create(**request.data)
+
+        return Response(new_order.id)
     
-    return Response({"ordercoupons": ordercoupons})
+    def put(self, request: Request, order_id: int = None):
+        
+        Order.objects.filter(pk=order_id).update(**request.data)
 
-# ##################### OrderItem View
-@api_view(["GET", "POST", "PUT", "DELETE"])
-def orderitem_view(request: Request, orderitem_id: int = None):
+        return Response("success")
 
-    if (request.method == "GET"):
-        return get_orderitem(request=request, orderitem_id=orderitem_id)
+    def delete(self, request: Request, order_id: int = None):
+        
+        return Response(Order.objects.get(pk=order_id).delete())
 
-    return Response("Nothing")
+# ##################### OrderCoupon Views
+class OrderCouponView(APIView):
 
+    def get(self, request: Request, ordercoupon_id: int = None):
 
-def get_orderitem(request: Request, orderitem_id: int = None):
+        order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
 
-    order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
+        if ordercoupon_id is not None:
+            ordercoupons = OrderCoupon.objects.filter(pk=ordercoupon_id).values(*values).annotate(**annotations)
 
-    if orderitem_id is not None:
-        orderitems = OrderItem.objects.filter(pk=orderitem_id).values(*values).annotate(**annotations)
+            if aggregations:
+                return Response({"ordercoupon": ordercoupons.first(), **ordercoupons.aggregate(**aggregations)})
+            
+            return Response({"ordercoupon": ordercoupons.first()})
+
+        ordercoupons = (
+            OrderCoupon.objects
+                .filter(**filters).distinct()
+                .values(*values).annotate(**annotations)
+                .order_by(order_by)
+        )
+        ordercoupons = ordercoupons[offset: offset + limit]
 
         if aggregations:
-            return Response({"orderitem": orderitems.first(), **orderitems.aggregate(**aggregations)})
+            return Response({"ordercoupons": ordercoupons, **ordercoupons.aggregate(**aggregations)})
         
-        return Response({"orderitem": orderitems.first()})
+        return Response({"ordercoupons": ordercoupons})
 
-    orderitems = (
-        OrderItem.objects
-            .filter(**filters).distinct()
-            .values(*values).annotate(**annotations)
-            .order_by(order_by)
-    )
-    orderitems = orderitems[offset: offset + limit]
+    def post(self, request: Request, ordercoupon_id: int = None):
 
-    if aggregations:
-        return Response({"orderitems": orderitems, **orderitems.aggregate(**aggregations)})
+        new_ordercoupon = OrderCoupon.objects.create(**request.data)
+
+        return Response(new_ordercoupon.id)
     
-    return Response({"orderitems": orderitems})
+    def put(self, request: Request, ordercoupon_id: int = None):
+        
+        OrderCoupon.objects.filter(pk=ordercoupon_id).update(**request.data)
+
+        return Response("success")
+
+    def delete(self, request: Request, ordercoupon_id: int = None):
+        
+        return Response(OrderCoupon.objects.get(pk=ordercoupon_id).delete())
+
+# ##################### OrderItem Views
+class OrderItemView(APIView):
+
+    def get(self, request: Request, orderitem_id: int = None):
+
+        order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
+
+        if orderitem_id is not None:
+            orderitems = OrderItem.objects.filter(pk=orderitem_id).values(*values).annotate(**annotations)
+
+            if aggregations:
+                return Response({"orderitem": orderitems.first(), **orderitems.aggregate(**aggregations)})
+            
+            return Response({"orderitem": orderitems.first()})
+
+        orderitems = (
+            OrderItem.objects
+                .filter(**filters).distinct()
+                .values(*values).annotate(**annotations)
+                .order_by(order_by)
+        )
+        orderitems = orderitems[offset: offset + limit]
+
+        if aggregations:
+            return Response({"orderitems": orderitems, **orderitems.aggregate(**aggregations)})
+        
+        return Response({"orderitems": orderitems})
+
+    def post(self, request: Request, orderitem_id: int = None):
+
+        new_orderitem = OrderItem.objects.create(**request.data)
+
+        return Response(new_orderitem.id)
+    
+    def put(self, request: Request, orderitem_id: int = None):
+        
+        OrderItem.objects.filter(pk=orderitem_id).update(**request.data)
+
+        return Response("success")
+
+    def delete(self, request: Request, orderitem_id: int = None):
+        
+        return Response(OrderItem.objects.get(pk=orderitem_id).delete())
 
 # ##################### Group Views
-@api_view(["GET", "POST", "PUT", "DELETE"])
-def group_view(request: Request, group_id: int = None):
+class GroupView(APIView):
 
-    if (request.method == "GET"):
-        return get_group(request=request, group_id=group_id)
+    def get(self, request: Request, group_id: int = None):
 
-    return Response("Nothing")
+        order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
 
+        if group_id is not None:
+            groups = Group.objects.filter(pk=group_id).values(*values).annotate(**annotations)
 
-def get_group(request: Request, group_id: int = None):
+            if aggregations:
+                return Response({"group": groups.first(), **groups.aggregate(**aggregations)})
+            
+            return Response({"group": groups.first()})
 
-    order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
-
-    if group_id is not None:
-        groups = Group.objects.filter(pk=group_id).values(*values).annotate(**annotations)
+        groups = (
+            Group.objects
+                .filter(**filters).distinct()
+                .values(*values).annotate(**annotations)
+                .order_by(order_by)
+        )
+        groups = groups[offset: offset + limit]
 
         if aggregations:
-            return Response({"group": groups.first(), **groups.aggregate(**aggregations)})
+            return Response({"groups": groups, **groups.aggregate(**aggregations)})
         
-        return Response({"group": groups.first()})
+        return Response({"groups": groups})
 
-    groups = (
-        Group.objects
-            .filter(**filters).distinct()
-            .values(*values).annotate(**annotations)
-            .order_by(order_by)
-    )
-    groups = groups[offset: offset + limit]
+    def post(self, request: Request, group_id: int = None):
 
-    if aggregations:
-        return Response({"groups": groups, **groups.aggregate(**aggregations)})
+        new_group = Group.objects.create(**request.data)
+
+        return Response(new_group.id)
     
-    return Response({"groups": groups})
+    def put(self, request: Request, group_id: int = None):
+        
+        Group.objects.filter(pk=group_id).update(**request.data)
+
+        return Response("success")
+
+    def delete(self, request: Request, group_id: int = None):
+        
+        return Response(Group.objects.get(pk=group_id).delete())
 
 # ##################### Category Views
-@api_view(["GET", "POST", "PUT", "DELETE"])
-def category_view(request: Request, category_id: int = None):
+class CategoryView(APIView):
 
-    if (request.method == "GET"):
-        return get_category(request=request, category_id=category_id)
+    def get(self, request: Request, category_id: int = None):
 
-    return Response("Nothing")
+        order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
 
+        if category_id is not None:
+            categorys = Category.objects.filter(pk=category_id).values(*values).annotate(**annotations)
 
-def get_category(request: Request, category_id: int = None):
+            if aggregations:
+                return Response({"category": categorys.first(), **categorys.aggregate(**aggregations)})
+            
+            return Response({"category": categorys.first()})
 
-    order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
-
-    if category_id is not None:
-        categorys = Category.objects.filter(pk=category_id).values(*values).annotate(**annotations)
+        categorys = (
+            Category.objects
+                .filter(**filters).distinct()
+                .values(*values).annotate(**annotations)
+                .order_by(order_by)
+        )
+        categorys = categorys[offset: offset + limit]
 
         if aggregations:
-            return Response({"category": categorys.first(), **categorys.aggregate(**aggregations)})
+            return Response({"categorys": categorys, **categorys.aggregate(**aggregations)})
         
-        return Response({"category": categorys.first()})
+        return Response({"categorys": categorys})
 
-    categorys = (
-        Category.objects
-            .filter(**filters).distinct()
-            .values(*values).annotate(**annotations)
-            .order_by(order_by)
-    )
-    categorys = categorys[offset: offset + limit]
+    def post(self, request: Request, category_id: int = None):
 
-    if aggregations:
-        return Response({"categorys": categorys, **categorys.aggregate(**aggregations)})
+        new_category = Category.objects.create(**request.data)
+
+        return Response(new_category.id)
     
-    return Response({"categorys": categorys})
+    def put(self, request: Request, category_id: int = None):
+        
+        Category.objects.filter(pk=category_id).update(**request.data)
+
+        return Response("success")
+
+    def delete(self, request: Request, category_id: int = None):
+        
+        return Response(Category.objects.get(pk=category_id).delete())
 
 # ##################### PackType Views
-@api_view(["GET", "POST", "PUT", "DELETE"])
-def packtype_view(request: Request, packtype_id: int = None):
+class PackTypeView(APIView):
 
-    if (request.method == "GET"):
-        return get_packtype(request=request, packtype_id=packtype_id)
+    def get(self, request: Request, packtype_id: int = None):
 
-    return Response("Nothing")
+        order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
 
+        if packtype_id is not None:
+            packtypes = PackType.objects.filter(pk=packtype_id).values(*values).annotate(**annotations)
 
-def get_packtype(request: Request, packtype_id: int = None):
+            if aggregations:
+                return Response({"packtype": packtypes.first(), **packtypes.aggregate(**aggregations)})
+            
+            return Response({"packtype": packtypes.first()})
 
-    order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
-
-    if packtype_id is not None:
-        packtypes = PackType.objects.filter(pk=packtype_id).values(*values).annotate(**annotations)
+        packtypes = (
+            PackType.objects
+                .filter(**filters).distinct()
+                .values(*values).annotate(**annotations)
+                .order_by(order_by)
+        )
+        packtypes = packtypes[offset: offset + limit]
 
         if aggregations:
-            return Response({"packtype": packtypes.first(), **packtypes.aggregate(**aggregations)})
+            return Response({"packtypes": packtypes, **packtypes.aggregate(**aggregations)})
         
-        return Response({"packtype": packtypes.first()})
+        return Response({"packtypes": packtypes})
 
-    packtypes = (
-        PackType.objects
-            .filter(**filters).distinct()
-            .values(*values).annotate(**annotations)
-            .order_by(order_by)
-    )
-    packtypes = packtypes[offset: offset + limit]
+    def post(self, request: Request, packtype_id: int = None):
 
-    if aggregations:
-        return Response({"packtypes": packtypes, **packtypes.aggregate(**aggregations)})
+        new_packtype = PackType.objects.create(**request.data)
+
+        return Response(new_packtype.id)
     
-    return Response({"packtypes": packtypes})
+    def put(self, request: Request, packtype_id: int = None):
+        
+        PackType.objects.filter(pk=packtype_id).update(**request.data)
+
+        return Response("success")
+
+    def delete(self, request: Request, packtype_id: int = None):
+        
+        return Response(PackType.objects.get(pk=packtype_id).delete())
 
 # ##################### CouponCount Views
-@api_view(["GET", "POST", "PUT", "DELETE"])
-def couponcount_view(request: Request, couponcount_id: int = None):
+class CouponCountView(APIView):
 
-    if (request.method == "GET"):
-        return get_couponcount(request=request, couponcount_id=couponcount_id)
+    def get(self, request: Request, couponcount_id: int = None):
 
-    return Response("Nothing")
+        order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
 
+        if couponcount_id is not None:
+            couponcounts = CouponCount.objects.filter(pk=couponcount_id).values(*values).annotate(**annotations)
 
-def get_couponcount(request: Request, couponcount_id: int = None):
+            if aggregations:
+                return Response({"couponcount": couponcounts.first(), **couponcounts.aggregate(**aggregations)})
+            
+            return Response({"couponcount": couponcounts.first()})
 
-    order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
-
-    if couponcount_id is not None:
-        couponcounts = CouponCount.objects.filter(pk=couponcount_id).values(*values).annotate(**annotations)
+        couponcounts = (
+            CouponCount.objects
+                .filter(**filters).distinct()
+                .values(*values).annotate(**annotations)
+                .order_by(order_by)
+        )
+        couponcounts = couponcounts[offset: offset + limit]
 
         if aggregations:
-            return Response({"couponcount": couponcounts.first(), **couponcounts.aggregate(**aggregations)})
+            return Response({"couponcounts": couponcounts, **couponcounts.aggregate(**aggregations)})
         
-        return Response({"couponcount": couponcounts.first()})
+        return Response({"couponcounts": couponcounts})
 
-    couponcounts = (
-        CouponCount.objects
-            .filter(**filters).distinct()
-            .values(*values).annotate(**annotations)
-            .order_by(order_by)
-    )
-    couponcounts = couponcounts[offset: offset + limit]
+    def post(self, request: Request, couponcount_id: int = None):
 
-    if aggregations:
-        return Response({"couponcounts": couponcounts, **couponcounts.aggregate(**aggregations)})
+        new_couponcount = CouponCount.objects.create(**request.data)
+
+        return Response(new_couponcount.id)
     
-    return Response({"couponcounts": couponcounts})
+    def put(self, request: Request, couponcount_id: int = None):
+        
+        CouponCount.objects.filter(pk=couponcount_id).update(**request.data)
+
+        return Response("success")
+
+    def delete(self, request: Request, couponcount_id: int = None):
+        
+        return Response(CouponCount.objects.get(pk=couponcount_id).delete())
 
 # ##################### OrderState Views
-@api_view(["GET", "POST", "PUT", "DELETE"])
-def orderstate_view(request: Request, orderstate_id: int = None):
+class OrderStateView(APIView):
 
-    if (request.method == "GET"):
-        return get_orderstate(request=request, orderstate_id=orderstate_id)
+    def get(self, request: Request, orderstate_id: int = None):
 
-    return Response("Nothing")
+        order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
 
+        if orderstate_id is not None:
+            orderstates = OrderState.objects.filter(pk=orderstate_id).values(*values).annotate(**annotations)
 
-def get_orderstate(request: Request, orderstate_id: int = None):
+            if aggregations:
+                return Response({"orderstate": orderstates.first(), **orderstates.aggregate(**aggregations)})
+            
+            return Response({"orderstate": orderstates.first()})
 
-    order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
-
-    if orderstate_id is not None:
-        orderstates = OrderState.objects.filter(pk=orderstate_id).values(*values).annotate(**annotations)
+        orderstates = (
+            OrderState.objects
+                .filter(**filters).distinct()
+                .values(*values).annotate(**annotations)
+                .order_by(order_by)
+        )
+        orderstates = orderstates[offset: offset + limit]
 
         if aggregations:
-            return Response({"orderstate": orderstates.first(), **orderstates.aggregate(**aggregations)})
+            return Response({"orderstates": orderstates, **orderstates.aggregate(**aggregations)})
         
-        return Response({"orderstate": orderstates.first()})
+        return Response({"orderstates": orderstates})
 
-    orderstates = (
-        OrderState.objects
-            .filter(**filters).distinct()
-            .values(*values).annotate(**annotations)
-            .order_by(order_by)
-    )
-    orderstates = orderstates[offset: offset + limit]
+    def post(self, request: Request, orderstate_id: int = None):
 
-    if aggregations:
-        return Response({"orderstates": orderstates, **orderstates.aggregate(**aggregations)})
+        new_orderstate = OrderState.objects.create(**request.data)
+
+        return Response(new_orderstate.id)
     
-    return Response({"orderstates": orderstates})
+    def put(self, request: Request, orderstate_id: int = None):
+        
+        OrderState.objects.filter(pk=orderstate_id).update(**request.data)
+
+        return Response("success")
+
+    def delete(self, request: Request, orderstate_id: int = None):
+        
+        return Response(OrderState.objects.get(pk=orderstate_id).delete())
 
 # ##################### Cart Views
-@api_view(["GET", "POST", "PUT", "DELETE"])
-def cart_view(request: Request, cart_id: int = None):
+class CartView(APIView):
 
-    if (request.method == "GET"):
-        return get_cart(request=request, cart_id=cart_id)
+    def get(self, request: Request, cart_id: int = None):
 
-    return Response("Nothing")
+        order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
 
+        if cart_id is not None:
+            carts = Cart.objects.filter(pk=cart_id).values(*values).annotate(**annotations)
 
-def get_cart(request: Request, cart_id: int = None):
+            if aggregations:
+                return Response({"cart": carts.first(), **carts.aggregate(**aggregations)})
+            
+            return Response({"cart": carts.first()})
 
-    order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
-
-    if cart_id is not None:
-        carts = Cart.objects.filter(pk=cart_id).values(*values).annotate(**annotations)
+        carts = (
+            Cart.objects
+                .filter(**filters).distinct()
+                .values(*values).annotate(**annotations)
+                .order_by(order_by)
+        )
+        carts = carts[offset: offset + limit]
 
         if aggregations:
-            return Response({"cart": carts.first(), **carts.aggregate(**aggregations)})
+            return Response({"carts": carts, **carts.aggregate(**aggregations)})
         
-        return Response({"cart": carts.first()})
+        return Response({"carts": carts})
 
-    carts = (
-        Cart.objects
-            .filter(**filters).distinct()
-            .values(*values).annotate(**annotations)
-            .order_by(order_by)
-    )
-    carts = carts[offset: offset + limit]
+    def post(self, request: Request, cart_id: int = None):
 
-    if aggregations:
-        return Response({"carts": carts, **carts.aggregate(**aggregations)})
+        new_cart = Cart.objects.create(**request.data)
+
+        return Response(new_cart.id)
     
-    return Response({"carts": carts})
+    def put(self, request: Request, cart_id: int = None):
+        
+        Cart.objects.filter(pk=cart_id).update(**request.data)
+
+        return Response("success")
+
+    def delete(self, request: Request, cart_id: int = None):
+        
+        return Response(Cart.objects.get(pk=cart_id).delete())
 
 # ##################### CartItem Views
-@api_view(["GET", "POST", "PUT", "DELETE"])
-def cartitem_view(request: Request, cartitem_id: int = None):
+class CartItemView(APIView):
 
-    if (request.method == "GET"):
-        return get_cartitem(request=request, cartitem_id=cartitem_id)
+    def get(self, request: Request, cartitem_id: int = None):
 
-    return Response("Nothing")
+        order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
 
+        if cartitem_id is not None:
+            cartitems = CartItem.objects.filter(pk=cartitem_id).values(*values).annotate(**annotations)
 
-def get_cartitem(request: Request, cartitem_id: int = None):
+            if aggregations:
+                return Response({"cartitem": cartitems.first(), **cartitems.aggregate(**aggregations)})
+            
+            return Response({"cartitem": cartitems.first()})
 
-    order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
-
-    if cartitem_id is not None:
-        cartitems = CartItem.objects.filter(pk=cartitem_id).values(*values).annotate(**annotations)
+        cartitems = (
+            CartItem.objects
+                .filter(**filters).distinct()
+                .values(*values).annotate(**annotations)
+                .order_by(order_by)
+        )
+        cartitems = cartitems[offset: offset + limit]
 
         if aggregations:
-            return Response({"cartitem": cartitems.first(), **cartitems.aggregate(**aggregations)})
+            return Response({"cartitems": cartitems, **cartitems.aggregate(**aggregations)})
         
-        return Response({"cartitem": cartitems.first()})
+        return Response({"cartitems": cartitems})
 
-    cartitems = (
-        CartItem.objects
-            .filter(**filters).distinct()
-            .values(*values).annotate(**annotations)
-            .order_by(order_by)
-    )
-    cartitems = cartitems[offset: offset + limit]
+    def post(self, request: Request, cartitem_id: int = None):
 
-    if aggregations:
-        return Response({"cartitems": cartitems, **cartitems.aggregate(**aggregations)})
+        new_cartitem = CartItem.objects.create(**request.data)
+
+        return Response(new_cartitem.id)
     
-    return Response({"cartitems": cartitems})
+    def put(self, request: Request, cartitem_id: int = None):
+        
+        CartItem.objects.filter(pk=cartitem_id).update(**request.data)
+
+        return Response("success")
+
+    def delete(self, request: Request, cartitem_id: int = None):
+        
+        return Response(CartItem.objects.get(pk=cartitem_id).delete())
 
 # ##################### Notification Views
-@api_view(["GET", "POST", "PUT", "DELETE"])
-def notification_view(request: Request, notification_id: int = None):
+class NotificationView(APIView):
 
-    if (request.method == "GET"):
-        return get_notification(request=request, notification_id=notification_id)
+    def get(self, request: Request, notification_id: int = None):
 
-    return Response("Nothing")
+        order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
 
+        if notification_id is not None:
+            notifications = Notification.objects.filter(pk=notification_id).values(*values).annotate(**annotations)
 
-def get_notification(request: Request, notification_id: int = None):
+            if aggregations:
+                return Response({"notification": notifications.first(), **notifications.aggregate(**aggregations)})
+            
+            return Response({"notification": notifications.first()})
 
-    order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
-
-    if notification_id is not None:
-        notifications = OrderNotification.objects.filter(pk=notification_id).values(*values).annotate(**annotations)
+        notifications = (
+            Notification.objects
+                .filter(**filters).distinct()
+                .values(*values).annotate(**annotations)
+                .order_by(order_by)
+        )
+        notifications = notifications[offset: offset + limit]
 
         if aggregations:
-            return Response({"notification": notifications.first(), **notifications.aggregate(**aggregations)})
+            return Response({"notifications": notifications, **notifications.aggregate(**aggregations)})
         
-        return Response({"notification": notifications.first()})
+        return Response({"notifications": notifications})
 
-    notifications = (
-        OrderNotification.objects
-            .filter(**filters).distinct()
-            .values(*values).annotate(**annotations)
-            .order_by(order_by)
-    )
-    notifications = notifications[offset: offset + limit]
+    def post(self, request: Request, notification_id: int = None):
 
-    if aggregations:
-        return Response({"notifications": notifications, **notifications.aggregate(**aggregations)})
+        new_notification = Notification.objects.create(**request.data)
+
+        return Response(new_notification.id)
     
-    return Response({"notifications": notifications})
+    def put(self, request: Request, notification_id: int = None):
+        
+        Notification.objects.filter(pk=notification_id).update(**request.data)
+
+        return Response("success")
+
+    def delete(self, request: Request, notification_id: int = None):
+        
+        return Response(Notification.objects.get(pk=notification_id).delete())
 
 # ################ Test
 @api_view(["GET", "POST", "PUT", "DELETE"])
 def test_view(request: Request):
 
-    print("-"*100)
-    print(f"{request.query_params=}")
-    # print(f"{request.data=}")
-    # print("-"*100)
-    # param = request.query_params.get("json")
-    # param = json.loads(param)
-    # print(json.dumps(param, indent=0))
-    # print("-"*100)
-    # print(request.query_params.getlist("filter"))
-    # print(dict(list(map(lambda el: el.split("="), request.query_params.getlist("filter")))))
-    # print("-"*100)
+    s = Store.objects.all().distinct()
 
-    return Response("nothing")
+    return Response(s.aggregate(**{}))
 
 # ##################### Generic GET View (not used yet)
 def get_entries(request: Request, entry_id: int = None, model_name: str = None):
@@ -582,7 +705,6 @@ def get_entries(request: Request, entry_id: int = None, model_name: str = None):
 
     return Response({f"{model_name}s": entries})
 
-
 # ################ Models
 tables = {
     "store": Store,
@@ -595,4 +717,64 @@ tables = {
     "group": Group,
     "category": Category,
     "packtype": PackType,
+    "cart": Cart,
+    "cartitem": CartItem,
+    "notification": Notification,
+    "orderstate": OrderState,
 }
+
+# Query Params fields:
+#   value:  
+#           - (value=field) name of a field to be returned in the response
+#           - if not included in the params then all fields will be returned
+#           - you can also access fields related to the row of the table (Foreign Key)
+#               ex: when retrieving products you can specify: "value=store__full_name",
+#               this is because Products has a field "store" which is foreign key to Store.
+# 
+#   filter: 
+#           - (filter=field:value) name of field to filter through
+#           - all fields will be joined with an "&" (no complex expressions yet).
+#               ex: when retrieving products you can specify: 
+#                       "filter=price:100", "filter=price__lt:200",
+#                                or "filter=store__full_name:something"
+# 
+#           - you can also use reverse relations, like filtering stores based on 
+#               their products prices, ex: "filter=product__price__gte:300", 
+#                   this returns stores that have at least one product that its price is 
+#                   greater than or equal (gte) 300.
+#               
+#   annotate:   
+#           - (annotate=func, field, returnField) choose a function to be applied on all objects              
+#               individually on some field (after filtering).
+#                   ex: table Store "annotate=max, product__price, max_price"
+#               this will add a "max_price" field to all stores in the list, and its value is
+#               the max price of the products of each store.
+#           - functions: max, min, avg, count, sum
+#               
+#   aggregate: 
+#           - same as annotate, it applies the function to all objects but instead of adding
+#               a max_price field to all stores, it's added once and its value is the max price 
+#               of all the products of the stores in the list.
+#           - same functions
+#               
+#   order_by:
+#           - some field to order the list by, ex: 
+#               "order_by=price" for ascending order, or 
+#               "order_by=-price" for descending order.
+# 
+#   offset: 
+#           - nbr of elements to ignore in the beginning of the list
+#   limit:
+#           - max nbr of elements in the list
+# 
+# - all the params are optional
+# - check the models to understand the reverse relations, 
+#       ex: Product has a foreign key to Store named "store", and Store has a reverse relation 
+#           to Product which is called "products"
+#       
+# - don't include reverse relations in "value" because for ex:"value=product__price" in Store
+#       a store has many products so Django doesn't know what product to add its price to the store,
+#       (actually you can, but you're gonna get redundant elements (this is weird))
+# 
+# - you can use reverse relations with: filter, annotate, aggregation, order_by.
+# 

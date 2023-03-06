@@ -1,6 +1,7 @@
 from django.db import models
-from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
-from django.contrib.contenttypes.models import ContentType
+# from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+# from django.contrib.contenttypes.models import ContentType
+from django.db.models import Q
 
 import time
 
@@ -47,9 +48,11 @@ def get_now_stamp():
 
 # Create your models here.
 class Store(models.Model):
-    full_name = models.CharField(max_length=100, default="")
+
     store_name = models.CharField(max_length=100, default="")
-    image_url = models.CharField(max_length=100, default="")
+
+    full_name = models.CharField(max_length=100, default="")
+    image_url = models.CharField(max_length=1000, default="")
 
     phone_number = models.CharField(max_length=20, default="")
     password = models.CharField(max_length=100, default="")
@@ -67,23 +70,34 @@ class Store(models.Model):
     # many to many relationship
     fav_clients_list = models.ManyToManyField(to="Client")
 
-    notifications = GenericRelation(
-        to="OrderNotification", 
-        content_type_field="user_1_type", 
-        object_id_field="user_1_id",
-    )
-
     # reverse relationships: [group, coupon, order, product]
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['store_name'], name='unique_store_name'),
+            models.UniqueConstraint(fields=['phone_number'], name='unique_store_phone_numbre'),
+        ]
     
     def __str__(self):
         return f"Store: {self.store_name} ({self.full_name})"
+    
+    def save(self, *args, **kwargs):
+        print("this is store save")
+        super().save(*args, **kwargs)
+
+    
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
 
 
 class Client(models.Model):
-    full_name = models.CharField(max_length=100, default="")
+
     shop_name = models.CharField(max_length=100, default="")
 
-    phone_number = models.CharField(max_length=20, default="0")
+    full_name = models.CharField(max_length=100, default="")
+    image_url = models.CharField(max_length=1000, default="")
+
+    phone_number = models.CharField(max_length=20, default="")
     password = models.CharField(max_length=100, default="")
     e_mail = models.CharField(max_length=100, default="")
 
@@ -99,16 +113,16 @@ class Client(models.Model):
     # many to many relationship
     fav_stores_list = models.ManyToManyField(to="Store")
 
-    notifications = GenericRelation(
-        to="OrderNotification", 
-        content_type_field="user_1_type", 
-        object_id_field="user_1_id",
-    )
-
     # reverse relationships: [couponcount, order, orderitem, cart]
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['shop_name'], name='unique_shop_name'),
+            models.UniqueConstraint(fields=['phone_number'], name='unique_shop_phone_numbre'),
+        ]
+
     def __str__(self):
-        return f"({self.id})Shop: {self.shop_name} ({self.full_name})"
+        return f"({self.id})Shop: {self.shop_name} ({self.full_name})" 
 
 
 class Group(models.Model):
@@ -125,6 +139,11 @@ class Group(models.Model):
     clients_list = models.ManyToManyField(to="Client")
 
     # reverse relationships: []
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['name', 'store_id'], name='unique_group_name'),
+        ]
 
     def __str__(self):
         return f"{self.name} {self.store}"
@@ -168,6 +187,15 @@ class Product(models.Model):
 
     # reverse relationships: [orderitem, cartitem]
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['name', 'store_id'], name='unique_product_name'),
+            models.CheckConstraint(check=Q(price__gte=1), name='positive_price'),
+            models.CheckConstraint(check=Q(nbr_units__gte=1), name='positive_nbr_units'),
+            models.CheckConstraint(check=Q(discount__gte=0) & Q(discount__lte=100), 
+                                   name='correct_product_discount'),
+        ]
+
     def __str__(self):
         return f"{self.name} ({self.brand}): {self.price}DA"
 
@@ -178,6 +206,11 @@ class Category(models.Model):
 
     # reverse relationships: [product]
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['name'], name='unique_category_name'),
+        ]
+
     def __str__(self):
         return f"{self.name}"
 
@@ -186,6 +219,11 @@ class PackType(models.Model):
     name = models.CharField(max_length=100, default="")
 
     # reverse relationships: [product]
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['name'], name='unique_pack_type_name'),
+        ]
 
     def __str__(self):
         return f"{self.name}"
@@ -213,6 +251,9 @@ class Coupon(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['string', 'store_id'], name='unique_coupon'),
+            models.CheckConstraint(check=Q(max_nbr_uses__gte=1), name='positive_max_nbr_uses'),
+            models.CheckConstraint(check=Q(discount__gte=0) & Q(discount__lte=100), 
+                                   name='correct_coupon_discount'),
         ]
 
     def __str__(self):
@@ -235,9 +276,14 @@ class CouponCount(models.Model):
         related_query_name="couponcount",
     )
 
-    count = models.IntegerField(default=0)
+    count = models.IntegerField(default=1)
 
     # reverse relationships: []
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(check=Q(count__gte=1), name='coupon_count_positive_count'),
+        ]
 
 # ################## 
 class Order(models.Model):
@@ -259,9 +305,16 @@ class Order(models.Model):
     )
 
     created_at = models.IntegerField(default=get_now_stamp)
-    total_price = models.FloatField(default=0.0)
+    total_price = models.FloatField(default=1.0)
 
     # reverse relationships: [orderstate, ordercoupon, orderitem]
+    
+    class Meta:
+        constraints = [
+            models.CheckConstraint(check=Q(total_price__gte=1), name='order_positive_total_price'),
+            models.CheckConstraint(check=Q(client_id__isnull=False) | Q(store_id__isnull=False), 
+                            name='valide_order'),
+        ]
 
 
 class OrderState(models.Model):
@@ -281,6 +334,10 @@ class OrderState(models.Model):
 
     def __str__(self):
         return f"{self.order}: {self.state}"
+
+    def save(self, *args, **kwargs):
+        print("this is State save")
+        super().save(*args, **kwargs)
 
 
 class OrderCoupon(models.Model):
@@ -325,6 +382,15 @@ class OrderItem(models.Model):
 
     # reverse relationships: []
 
+    class Meta:
+        constraints = [
+            models.CheckConstraint(check=Q(quantity__gte=1), name='item_positive_quantity'),
+            models.CheckConstraint(check=Q(original_price__gte=1), name='item_positive_original_price'),
+            models.CheckConstraint(check=Q(new_price__gte=0), name='item_positive_new_price'),
+            models.CheckConstraint(check=Q(discount__gte=0) & Q(discount__lt=100), 
+                                   name='item_correct_discount'),
+        ]
+
 # ################## 
 class Cart(models.Model):
 
@@ -358,48 +424,45 @@ class CartItem(models.Model):
 
     # reverse relationships: []
 
+    class Meta:
+        constraints = [
+            models.CheckConstraint(check=Q(quantity__gte=1), name='cart_positive_quantity'),
+        ]
+
 # ################## 
-class OrderNotification(models.Model):
+class Notification(models.Model):
 
-    # user who recieves the notification (Client, Store)
-    user_1_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name="notifications")
-    user_1_id = models.PositiveIntegerField()
-    user_1 = GenericForeignKey('user_1_type', 'user_1_id')
+    # User who recieves the notification (Client, Store)
+    client = models.ForeignKey(
+        to="Client",
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="notifications",
+        related_query_name="notification",
+    )
 
-    # user who comitted the action (Client, Store)
-    user_2_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    user_2_id = models.PositiveIntegerField()
-    user_2 = GenericForeignKey('user_2_type', 'user_2_id')
+    store = models.ForeignKey(
+        to="Store",
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="notifications",
+        related_query_name="notification",
+    )
 
-    # action commited by user_2
     action = models.CharField(max_length=100, choices=actions, default="Created")
     message = models.TextField(default="")
 
-    # Order that user_2 commited the action on
-    order = models.ForeignKey("Order", on_delete=models.SET_NULL, null=True, blank=True)
-
-    read = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now=True)
+    seen = models.BooleanField(default=False)
+    created_at = models.IntegerField(default=get_now_stamp)
 
     def __str__(self) -> str:
-        if self.user_2_type_id == 16:
-            return f"Client {self.user_2_id} {self.action} order_{self.order_id} {self.created_at.date()}"  
-        else:
-            return f"Store {self.user_2_id} {self.action} order_{self.order_id} {self.created_at.date()}"  
+        return self.message
+    
+    class Meta:
+        constraints = [
+            models.CheckConstraint(check=Q(client_id__isnull=True) ^ Q(store_id__isnull=True), 
+                            name='valide_notification'),
+        ]
 
-# Store:
-#   client x: sent an order
-#   client x: updated an order
-#   client x: deleted an order
-#   client x: canceled an order
-# 
-# 
-# client:
-#   store x: accepted your order
-#   store x: refused your order
-#   store x: order is ready
-#   store x: shipping your order
-# 
-# 
-# 
-# 
+
+# ################## 
