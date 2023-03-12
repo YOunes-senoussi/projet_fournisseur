@@ -1,9 +1,10 @@
+from functools import reduce
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.decorators import api_view
 from django.db.models import F, Case, Value, When, Q, Avg, Max, Min, Count, Sum
-from django.contrib.postgres.aggregates import ArrayAgg
-import base64, io
+from django.db.models.query import QuerySet
+import base64, io, pathlib
 from PIL import Image
 
 from API.models import *
@@ -15,6 +16,7 @@ calcul_classes = {
     "count": Count,
     "sum": Sum,
     "value": Value,
+    "append": F,
 }
 # ################ 
 
@@ -300,14 +302,15 @@ def extract_params(request: Request):
     annotations = get_annotations(params.getlist("annotate", []))
     aggregations = get_annotations(params.getlist("aggregate", []))
 
-    filters = dict(list(map(lambda el:el.split(":"), params.getlist("filter", []))))
+    filters = dict(list(map(
+        lambda el:(el.split(":")[0], eval(f'"{el.split(":")[1]}"')
+                   ), params.getlist("filter", []))))
 
     order_by = params.get("order_by", "pk")
     offset = int(params.get("offset", 0))
     limit = int(params.get("limit", 1_000_000))
 
     return order_by, offset, limit, filters, values, annotations, aggregations
-
 
 def get_annotations(annot_list: list):
 
@@ -334,17 +337,161 @@ def get_annotations(annot_list: list):
     return annotations
 
 # #####################
-def save_encoded_image(encoded_image: str, image_path: str):
+def decode_image(encoded_image: str):
 
     decoded_image = base64.b64decode(bytes(encoded_image, encoding="utf-8"))
-    image = Image.open(io.BytesIO(decoded_image))
-    full_path = f"{image_path}.{image.format}"
-    image.save(full_path)
+    return Image.open(io.BytesIO(decoded_image))
 
-    return full_path
+def copy_image(source_path: str, destination_path):
+
+    if not pathlib.Path(destination_path).suffix:
+        destination_path += pathlib.Path(source_path).suffix
+
+    with open(source_path, mode="rb") as file_1:
+        with open(destination_path, mode="wb") as file_2:
+            file_2.write(file_1.read())
 
 # #####################
+def filter_set(items: QuerySet, args: dict, aggregations: dict = None):
 
+    q = create_filter(conditions=args.get("conditions", []), aggregations=aggregations)
+
+    if args.get("distinct", False):
+        return items.filter(q).distinct()
+    else:
+        return items.filter(q)
+
+def exclude_set(items: QuerySet, args: dict, aggregations: dict = None):
+
+    q = create_filter(conditions=args.get("conditions", []), aggregations=aggregations)
+
+    if args.get("distinct", False):
+        return items.exclude(q).distinct()
+    else:
+        return items.exclude(q)
+
+def annotate_set(items: QuerySet, args: dict, aggregations: dict = None):
+
+    func = args.get("function")
+    field = args.get("field")
+    output = args.get("output")
+
+    if func.lower() == "max":
+        value = Max(field, filter=create_filter(args.get("conditions", []), aggregations))
+
+    elif func.lower() == "min":
+        value = Min(field, filter=create_filter(args.get("conditions", []), aggregations))
+
+    elif func.lower() == "value":
+        value = Value(field, filter=create_filter(args.get("conditions", []), aggregations))
+
+    elif func.lower() == "avg":
+        value = Avg(field, filter=create_filter(args.get("conditions", []), aggregations))
+
+    elif func.lower() == "sum":
+        value = Sum(field, filter=create_filter(args.get("conditions", []), aggregations))
+
+    elif func.lower() == "count":
+        value = Count(field, distinct=args.get("distinct", False), 
+            filter=create_filter(args.get("conditions", []), aggregations)
+        )
+    elif func.lower() == "append":
+        value = F(field)
+        output = args.get("output", field)
+
+    return items.annotate(**{output: value}) if output else items.annotate(value)
+
+def aggregate_set(items: QuerySet, args: dict, aggregations: dict = None):
+
+    func = args.get("function")
+    field = args.get("field")
+    output = args.get("output")
+
+    if func.lower() == "max":
+        value = Max(field, filter=create_filter(args.get("conditions", []), aggregations))
+
+    elif func.lower() == "min":
+        value = Min(field, filter=create_filter(args.get("conditions", []), aggregations))
+
+    elif func.lower() == "value":
+        value = Value(field, filter=create_filter(args.get("conditions", []), aggregations))
+
+    elif func.lower() == "avg":
+        value = Avg(field, filter=create_filter(args.get("conditions", []), aggregations))
+
+    elif func.lower() == "sum":
+        value = Sum(field, filter=create_filter(args.get("conditions", []), aggregations))
+        
+    elif func.lower() == "count":
+        value = Count(field, distinct=args.get("distinct", False), 
+            filter=create_filter(args.get("conditions", []), aggregations)
+        )
+    elif func.lower() == "append":
+        value = F(field)
+        output = args.get("output", field)
+
+    return items.aggregate(**{output: value}) if output else items.aggregate(value)
+
+def order_set(items: QuerySet, args: dict):
+
+    fields = args.get("fields", [])
+
+    if isinstance(fields, list):
+        return items.order_by(*fields)
+    
+    elif isinstance(fields, str):
+        return items.order_by(fields)
+    
+    return items
+
+def slice_set(items: QuerySet, args: dict):
+
+    return items[args.get("offset", 0): args.get("offset", 0) + args.get("limit", 1_000_000)]
+
+def output_values(items: QuerySet, args: dict):
+
+    values = args.get("values", [])
+    values_args = list(filter(lambda el:isinstance(el, str), values))
+    values_kwargs = list(filter(lambda el:isinstance(el, dict), values))
+    values_kwargs = reduce(lambda d, el: {**d, **el}, values_kwargs, {})
+    values_kwargs = {key: F(value) for key, value in values_kwargs.items()}
+
+    return items.values(*values_args, **values_kwargs)
+
+def create_filter(conditions: list, aggregations: dict = None):
+
+    if aggregations is None:
+        aggregations = {}
+
+    q = Q()
+    for filter in conditions:
+        conditions = {}
+        for expression, value in filter.items():
+
+            if isinstance(value, dict):
+                if "aggregation" in value:
+                    conditions[expression] = aggregations.get(value["aggregation"])
+                elif "field" in value:
+                    conditions[expression] = F(value["field"])
+
+            elif isinstance(value, list):
+                conditions[expression] = list(map(
+                        lambda el:
+                        aggregations[el["aggregation"]] if (isinstance(el, dict) and "aggregation" in el)
+                        else F(el["field"]) if (isinstance(el, dict) and "field" in el) 
+                        else el
+                        , value
+                    )
+                )
+
+            else:
+                conditions[expression] = value
+
+        q |= Q(**conditions)
+
+    return q
+
+# #####################
 # 1 - unchecked
 # 2 - checked:
 #     not accepted (reponse : message d'err)
@@ -360,13 +507,3 @@ def save_encoded_image(encoded_image: str, image_path: str):
 # b3atha w lahget, 
 # lcommande fiha mouchkil(message err), 
 # y'anuliha]
-    
-
-# products : [{id,qte}]
-# coupouns : //
-# id store / client
-# javel , smid 
-# RD55 1% fail (coupoun mayemchich)
-
-# 120*20 + 1000*10
-# 12400 -1240 = 11160 

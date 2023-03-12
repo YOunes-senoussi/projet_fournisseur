@@ -70,7 +70,7 @@ class Store(models.Model):
     # many to many relationship
     fav_clients_list = models.ManyToManyField(to="Client")
 
-    # reverse relationships: [group, coupon, order, product]
+    # reverse relationships: [group*, coupon*, order*, product*, notification*, ad*]
 
     class Meta:
         constraints = [
@@ -82,7 +82,6 @@ class Store(models.Model):
         return f"Store: {self.store_name} ({self.full_name})"
     
     def save(self, *args, **kwargs):
-        print("this is store save")
         super().save(*args, **kwargs)
 
     
@@ -113,7 +112,7 @@ class Client(models.Model):
     # many to many relationship
     fav_stores_list = models.ManyToManyField(to="Store")
 
-    # reverse relationships: [couponcount, order, orderitem, cart]
+    # reverse relationships: [couponcount*, order*, orderitem*, notification*, cart]
 
     class Meta:
         constraints = [
@@ -185,7 +184,7 @@ class Product(models.Model):
 
     created_at = models.IntegerField(default=get_now_stamp)
 
-    # reverse relationships: [orderitem, cartitem]
+    # reverse relationships: [orderitem*, cartitem*, ad*]
 
     class Meta:
         constraints = [
@@ -204,7 +203,7 @@ class Category(models.Model):
     name = models.CharField(max_length=100, default="")
     image_url = models.CharField(max_length=100, default="")
 
-    # reverse relationships: [product]
+    # reverse relationships: [product*]
 
     class Meta:
         constraints = [
@@ -218,7 +217,7 @@ class Category(models.Model):
 class PackType(models.Model):
     name = models.CharField(max_length=100, default="")
 
-    # reverse relationships: [product]
+    # reverse relationships: [product*]
 
     class Meta:
         constraints = [
@@ -231,7 +230,7 @@ class PackType(models.Model):
 # ################## 
 class Coupon(models.Model):
     string = models.CharField(max_length=100)
-    discount = models.IntegerField(default=0)
+    discount = models.IntegerField(default=1)
     store = models.ForeignKey(
         to="Store",
         on_delete=models.CASCADE,
@@ -246,13 +245,13 @@ class Coupon(models.Model):
     created_at = models.IntegerField(default=get_now_stamp)
     is_active = models.BooleanField(default=True)
 
-    # reverse relationships: [couponcount, ordercoupon]
+    # reverse relationships: [couponcount*, ordercoupon*]
 
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['string', 'store_id'], name='unique_coupon'),
             models.CheckConstraint(check=Q(max_nbr_uses__gte=1), name='positive_max_nbr_uses'),
-            models.CheckConstraint(check=Q(discount__gte=0) & Q(discount__lte=100), 
+            models.CheckConstraint(check=Q(discount__gte=1) & Q(discount__lte=100), 
                                    name='correct_coupon_discount'),
         ]
 
@@ -282,6 +281,7 @@ class CouponCount(models.Model):
 
     class Meta:
         constraints = [
+            models.UniqueConstraint(fields=['client_id', 'coupon_id'], name='unique_client_coupon'),
             models.CheckConstraint(check=Q(count__gte=1), name='coupon_count_positive_count'),
         ]
 
@@ -307,7 +307,10 @@ class Order(models.Model):
     created_at = models.IntegerField(default=get_now_stamp)
     total_price = models.FloatField(default=1.0)
 
-    # reverse relationships: [orderstate, ordercoupon, orderitem]
+    archived_by_store = models.BooleanField(default=False)
+    archived_by_client = models.BooleanField(default=False)
+
+    # reverse relationships: [orderstate*, ordercoupon*, orderitem*]
     
     class Meta:
         constraints = [
@@ -401,7 +404,7 @@ class Cart(models.Model):
         related_query_name="cart",
     )
 
-    # reverse relationships: [cartitem]
+    # reverse relationships: [cartitem*]
 
 
 class CartItem(models.Model):
@@ -455,14 +458,57 @@ class Notification(models.Model):
     seen = models.BooleanField(default=False)
     created_at = models.IntegerField(default=get_now_stamp)
 
+    # reverse relationships: []
+
     def __str__(self) -> str:
         return self.message
     
     class Meta:
         constraints = [
-            models.CheckConstraint(check=Q(client_id__isnull=True) ^ Q(store_id__isnull=True), 
-                            name='valide_notification'),
+            models.CheckConstraint(
+                check=Q(client_id__isnull=True) ^ Q(store_id__isnull=True), 
+                name='valide_notification', 
+                violation_error_message="both client and store are/aren't null"
+            ),
         ]
 
-
 # ################## 
+class Advertisement(models.Model):
+
+    store = models.ForeignKey(
+        to="Store",
+        on_delete=models.CASCADE,
+        related_name="ads",
+        related_query_name="ad",
+    )
+    
+    product = models.ForeignKey(
+        to="Product",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="ads",
+        related_query_name="ad",
+    )
+
+    type_choices = (("Store", "store"), ("Product", "product"))
+    ad_type = models.CharField(max_length=100, choices=type_choices, default="Store")
+    description = models.TextField()
+
+    # reverse relationships: [image*]
+
+
+class AdImage(models.Model):
+
+    ad = models.ForeignKey(
+        to="Advertisement",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="images",
+        related_query_name="image",
+    )
+    url = models.CharField(max_length=1000, default="")
+
+
+# fournisseur yban ghir a quelque clients

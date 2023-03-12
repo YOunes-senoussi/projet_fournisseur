@@ -25,7 +25,7 @@ SECRET_KEY = "django-insecure-$!*gd5+sh!tl-4xtz(8t8&j%29(w#v&87sus#0wn*u%%35qa=j
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # ///////////////////////////
 # super user:
@@ -165,3 +165,11 @@ CORS_ALLOW_HEADERS = [
     "x-requested-with",
     "access-token",
 ]
+
+# Default images
+# ////////////////////////////
+DEFAULT_STORE_IMG = "static/defaults/store_img.jpg"
+DEFAULT_CLIENT_IMG = "static/defaults/client_img.jpg"
+DEFAULT_CATEGORY_IMG = "static/defaults/category_img.jpg"
+DEFAULT_PRODUCT_IMG = "static/defaults/product_img.jpg"
+

@@ -3,12 +3,21 @@ from rest_framework.request import Request
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 
+from projet_fournisseur.settings import (
+    DEFAULT_STORE_IMG, DEFAULT_CLIENT_IMG, 
+    DEFAULT_PRODUCT_IMG, DEFAULT_CATEGORY_IMG
+)
 from API.models import *
-from API.more_functions import extract_params
+from API.more_functions import (
+    extract_params, aggregate_set, annotate_set, filter_set, 
+    exclude_set, order_set, slice_set, output_values, decode_image, copy_image)
+
+from django.db.models import F, Case, Value, When, Q, Avg, Max, Min, Count, Sum
+import pathlib, base64
 
 # ##################### Store Views
 class StoreView(APIView):
-    
+
     def get(self, request: Request, store_id: int = None):
 
         order_by, offset, limit, filters, values, annotations, aggregations = extract_params(request)
@@ -18,7 +27,7 @@ class StoreView(APIView):
 
             if aggregations:
                 return Response({"store": stores.first(), **stores.aggregate(**aggregations)})
-            
+
             return Response({"store": stores.first()})
 
         stores = (
@@ -36,16 +45,62 @@ class StoreView(APIView):
 
     def post(self, request: Request, store_id: int = None):
 
-        new_store = Store.objects.create(**request.data)
+        kwargs = request.data
+        encoded_img = kwargs.pop("encoded_img", None)
+        new_store = Store(**kwargs)
+        # new_store.save()
+        img_path = f"static/stores/store_{new_store.id}/store_{new_store.id}"
+        
+        parent_folder = pathlib.Path(img_path).parent
+        parent_folder.mkdir(exist_ok=True)
 
-        return Response(new_store.id)
+        if encoded_img:
+            encoded_img = encoded_img.split(",")[-1]
+            try:
+                image = decode_image(encoded_img)
+                img_path = f"{img_path}.{image.format}"
+                image.save(img_path)
+                return Response(img_path)
+
+            except Exception as e:
+                return Response(data=e.args, status=400)
+        
+        else:
+            copy_image(source_path=DEFAULT_STORE_IMG, destination_path=img_path)
+        
+        new_store.image_url = img_path
+        # new_store.save()
+
+        return Response({"id", new_store.id})
     
     def put(self, request: Request, store_id: int = None):
 
+        kwargs = request.data
+        encoded_img = kwargs.pop("encoded_img", None)
         Store.objects.filter(pk=store_id).update(**request.data)
+        store = Store.objects.filter(pk=store_id).first()
+        store.fav_clients_list
 
+        img_path = f"static/stores/store_{store.id}/store_{store.id}"
+        
+        parent_folder = pathlib.Path(img_path).parent
+        parent_folder.mkdir(exist_ok=True)
+
+        if encoded_img:
+            encoded_img = encoded_img.split(",")[-1]
+            try:
+                image = decode_image(encoded_img)
+                img_path = f"{img_path}.{image.format}"
+                image.save(img_path)
+                return Response(img_path)
+
+            except Exception as e:
+                return Response(data=e.args, status=400)
+        else:
+            copy_image(source_path=DEFAULT_STORE_IMG, destination_path=img_path)
+        
         return Response("success")
-    
+
     def delete(self, request: Request, store_id: int = None):
 
         return Response(Store.objects.get(pk=store_id).delete())
@@ -93,7 +148,6 @@ class ClientView(APIView):
     def delete(self, request: Request, client_id: int = None):
         
         return Response(Client.objects.get(pk=client_id).delete())
-
 
 # ##################### Product Views
 class ProductView(APIView):
@@ -635,20 +689,20 @@ class NotificationView(APIView):
 
             if aggregations:
                 return Response({"notification": notifications.first(), **notifications.aggregate(**aggregations)})
-            
+
             return Response({"notification": notifications.first()})
 
         notifications = (
             Notification.objects
-                .filter(**filters).distinct()
                 .values(*values).annotate(**annotations)
+                .filter(**filters).distinct()
                 .order_by(order_by)
         )
         notifications = notifications[offset: offset + limit]
 
         if aggregations:
             return Response({"notifications": notifications, **notifications.aggregate(**aggregations)})
-        
+
         return Response({"notifications": notifications})
 
     def post(self, request: Request, notification_id: int = None):
@@ -671,9 +725,637 @@ class NotificationView(APIView):
 @api_view(["GET", "POST", "PUT", "DELETE"])
 def test_view(request: Request):
 
-    s = Store.objects.all().distinct()
+    return Response(data="nothing")
 
-    return Response(s.aggregate(**{}))
+# ################ get Store
+@api_view(["POST"])
+def get_stores(request: Request):
+
+    body = request.data
+    aggregations = {}
+
+    items = Store.objects.all().values()
+
+    for operation in body:
+        op_name = operation.get("operation")
+        args = operation.get("args")
+
+        if op_name and args:
+            if op_name == "filter":
+                items = filter_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "exclude":
+                items = exclude_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "annotate":
+                items = annotate_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "aggregate":
+                aggregations.update(**aggregate_set(items=items, args=args, aggregations=aggregations))
+                
+            if op_name == "output_values":
+                items = output_values(items=items, args=args)
+                
+            if op_name == "order":
+                items = order_set(items=items, args=args)
+                
+            if op_name == "slice":
+                items = slice_set(items=items, args=args)
+        
+    return Response({"aggregations": aggregations, "items": items})
+
+# ################ get Client
+@api_view(["POST"])
+def get_clients(request: Request):
+
+    body = request.data
+    aggregations = {}
+
+    items = Client.objects.all().values()
+
+    for operation in body:
+        op_name = operation.get("operation")
+        args = operation.get("args")
+
+        if op_name and args:
+            if op_name == "filter":
+                items = filter_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "exclude":
+                items = exclude_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "annotate":
+                items = annotate_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "aggregate":
+                aggregations.update(**aggregate_set(items=items, args=args, aggregations=aggregations))
+                
+            if op_name == "output_values":
+                items = output_values(items=items, args=args)
+                
+            if op_name == "order":
+                items = order_set(items=items, args=args)
+                
+            if op_name == "slice":
+                items = slice_set(items=items, args=args)
+        
+    return Response({"aggregations": aggregations, "items": items})
+
+# ################ get Group
+@api_view(["POST"])
+def get_groups(request: Request):
+
+    body = request.data
+    aggregations = {}
+
+    items = Group.objects.all().values()
+
+    for operation in body:
+        op_name = operation.get("operation")
+        args = operation.get("args")
+
+        if op_name and args:
+            if op_name == "filter":
+                items = filter_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "exclude":
+                items = exclude_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "annotate":
+                items = annotate_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "aggregate":
+                aggregations.update(**aggregate_set(items=items, args=args, aggregations=aggregations))
+                
+            if op_name == "output_values":
+                items = output_values(items=items, args=args)
+                
+            if op_name == "order":
+                items = order_set(items=items, args=args)
+                
+            if op_name == "slice":
+                items = slice_set(items=items, args=args)
+        
+    return Response({"aggregations": aggregations, "items": items})
+
+# ################ get Product
+@api_view(["POST"])
+def get_products(request: Request):
+
+    body = request.data
+    aggregations = {}
+
+    items = Product.objects.all().values()
+
+    for operation in body:
+        op_name = operation.get("operation")
+        args = operation.get("args")
+
+        if op_name and args:
+            if op_name == "filter":
+                items = filter_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "exclude":
+                items = exclude_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "annotate":
+                items = annotate_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "aggregate":
+                aggregations.update(**aggregate_set(items=items, args=args, aggregations=aggregations))
+                
+            if op_name == "output_values":
+                items = output_values(items=items, args=args)
+                
+            if op_name == "order":
+                items = order_set(items=items, args=args)
+                
+            if op_name == "slice":
+                items = slice_set(items=items, args=args)
+        
+    return Response({"aggregations": aggregations, "items": items})
+
+# ################ get Category
+@api_view(["POST"])
+def get_categories(request: Request):
+
+    body = request.data
+    aggregations = {}
+
+    items = Category.objects.all().values()
+
+    for operation in body:
+        op_name = operation.get("operation")
+        args = operation.get("args")
+
+        if op_name and args:
+            if op_name == "filter":
+                items = filter_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "exclude":
+                items = exclude_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "annotate":
+                items = annotate_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "aggregate":
+                aggregations.update(**aggregate_set(items=items, args=args, aggregations=aggregations))
+                
+            if op_name == "output_values":
+                items = output_values(items=items, args=args)
+                
+            if op_name == "order":
+                items = order_set(items=items, args=args)
+                
+            if op_name == "slice":
+                items = slice_set(items=items, args=args)
+        
+    return Response({"aggregations": aggregations, "items": items})
+
+# ################ get PackType
+@api_view(["POST"])
+def get_packtypes(request: Request):
+
+    body = request.data
+    aggregations = {}
+
+    items = PackType.objects.all().values()
+
+    for operation in body:
+        op_name = operation.get("operation")
+        args = operation.get("args")
+
+        if op_name and args:
+            if op_name == "filter":
+                items = filter_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "exclude":
+                items = exclude_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "annotate":
+                items = annotate_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "aggregate":
+                aggregations.update(**aggregate_set(items=items, args=args, aggregations=aggregations))
+                
+            if op_name == "output_values":
+                items = output_values(items=items, args=args)
+                
+            if op_name == "order":
+                items = order_set(items=items, args=args)
+                
+            if op_name == "slice":
+                items = slice_set(items=items, args=args)
+        
+    return Response({"aggregations": aggregations, "items": items})
+
+# ################ get Coupon
+@api_view(["POST"])
+def get_coupons(request: Request):
+
+    body = request.data
+    aggregations = {}
+
+    items = Coupon.objects.all().values()
+
+    for operation in body:
+        op_name = operation.get("operation")
+        args = operation.get("args")
+
+        if op_name and args:
+            if op_name == "filter":
+                items = filter_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "exclude":
+                items = exclude_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "annotate":
+                items = annotate_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "aggregate":
+                aggregations.update(**aggregate_set(items=items, args=args, aggregations=aggregations))
+                
+            if op_name == "output_values":
+                items = output_values(items=items, args=args)
+                
+            if op_name == "order":
+                items = order_set(items=items, args=args)
+                
+            if op_name == "slice":
+                items = slice_set(items=items, args=args)
+        
+    return Response({"aggregations": aggregations, "items": items})
+
+# ################ get CouponCount
+@api_view(["POST"])
+def get_couponcounts(request: Request):
+
+    body = request.data
+    aggregations = {}
+
+    items = CouponCount.objects.all().values()
+
+    for operation in body:
+        op_name = operation.get("operation")
+        args = operation.get("args")
+
+        if op_name and args:
+            if op_name == "filter":
+                items = filter_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "exclude":
+                items = exclude_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "annotate":
+                items = annotate_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "aggregate":
+                aggregations.update(**aggregate_set(items=items, args=args, aggregations=aggregations))
+                
+            if op_name == "output_values":
+                items = output_values(items=items, args=args)
+                
+            if op_name == "order":
+                items = order_set(items=items, args=args)
+                
+            if op_name == "slice":
+                items = slice_set(items=items, args=args)
+        
+    return Response({"aggregations": aggregations, "items": items})
+
+# ################ get Order
+@api_view(["POST"])
+def get_orders(request: Request):
+
+    body = request.data
+    aggregations = {}
+
+    items = Order.objects.all().values()
+
+    for operation in body:
+        op_name = operation.get("operation")
+        args = operation.get("args")
+
+        if op_name and args:
+            if op_name == "filter":
+                items = filter_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "exclude":
+                items = exclude_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "annotate":
+                items = annotate_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "aggregate":
+                aggregations.update(**aggregate_set(items=items, args=args, aggregations=aggregations))
+                
+            if op_name == "output_values":
+                items = output_values(items=items, args=args)
+                
+            if op_name == "order":
+                items = order_set(items=items, args=args)
+                
+            if op_name == "slice":
+                items = slice_set(items=items, args=args)
+        
+    return Response({"aggregations": aggregations, "items": items})
+
+# ################ get OrderState
+@api_view(["POST"])
+def get_orderstates(request: Request):
+
+    body = request.data
+    aggregations = {}
+
+    items = OrderState.objects.all().values()
+
+    for operation in body:
+        op_name = operation.get("operation")
+        args = operation.get("args")
+
+        if op_name and args:
+            if op_name == "filter":
+                items = filter_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "exclude":
+                items = exclude_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "annotate":
+                items = annotate_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "aggregate":
+                aggregations.update(**aggregate_set(items=items, args=args, aggregations=aggregations))
+                
+            if op_name == "output_values":
+                items = output_values(items=items, args=args)
+                
+            if op_name == "order":
+                items = order_set(items=items, args=args)
+                
+            if op_name == "slice":
+                items = slice_set(items=items, args=args)
+        
+    return Response({"aggregations": aggregations, "items": items})
+
+# ################ get OrderCoupon
+@api_view(["POST"])
+def get_ordercoupons(request: Request):
+
+    body = request.data
+    aggregations = {}
+
+    items = OrderCoupon.objects.all().values()
+
+    for operation in body:
+        op_name = operation.get("operation")
+        args = operation.get("args")
+
+        if op_name and args:
+            if op_name == "filter":
+                items = filter_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "exclude":
+                items = exclude_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "annotate":
+                items = annotate_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "aggregate":
+                aggregations.update(**aggregate_set(items=items, args=args, aggregations=aggregations))
+                
+            if op_name == "output_values":
+                items = output_values(items=items, args=args)
+                
+            if op_name == "order":
+                items = order_set(items=items, args=args)
+                
+            if op_name == "slice":
+                items = slice_set(items=items, args=args)
+        
+    return Response({"aggregations": aggregations, "items": items})
+
+# ################ get OrderItem
+@api_view(["POST"])
+def get_orderitems(request: Request):
+
+    body = request.data
+    aggregations = {}
+
+    items = OrderItem.objects.all().values()
+
+    for operation in body:
+        op_name = operation.get("operation")
+        args = operation.get("args")
+
+        if op_name and args:
+            if op_name == "filter":
+                items = filter_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "exclude":
+                items = exclude_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "annotate":
+                items = annotate_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "aggregate":
+                aggregations.update(**aggregate_set(items=items, args=args, aggregations=aggregations))
+                
+            if op_name == "output_values":
+                items = output_values(items=items, args=args)
+                
+            if op_name == "order":
+                items = order_set(items=items, args=args)
+                
+            if op_name == "slice":
+                items = slice_set(items=items, args=args)
+        
+    return Response({"aggregations": aggregations, "items": items})
+
+# ################ get Cart
+@api_view(["POST"])
+def get_carts(request: Request):
+
+    body = request.data
+    aggregations = {}
+
+    items = Cart.objects.all().values()
+
+    for operation in body:
+        op_name = operation.get("operation")
+        args = operation.get("args")
+
+        if op_name and args:
+            if op_name == "filter":
+                items = filter_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "exclude":
+                items = exclude_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "annotate":
+                items = annotate_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "aggregate":
+                aggregations.update(**aggregate_set(items=items, args=args, aggregations=aggregations))
+                
+            if op_name == "output_values":
+                items = output_values(items=items, args=args)
+                
+            if op_name == "order":
+                items = order_set(items=items, args=args)
+                
+            if op_name == "slice":
+                items = slice_set(items=items, args=args)
+        
+    return Response({"aggregations": aggregations, "items": items})
+
+# ################ get CartItem
+@api_view(["POST"])
+def get_cartitems(request: Request):
+
+    body = request.data
+    aggregations = {}
+
+    items = CartItem.objects.all().values()
+
+    for operation in body:
+        op_name = operation.get("operation")
+        args = operation.get("args")
+
+        if op_name and args:
+            if op_name == "filter":
+                items = filter_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "exclude":
+                items = exclude_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "annotate":
+                items = annotate_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "aggregate":
+                aggregations.update(**aggregate_set(items=items, args=args, aggregations=aggregations))
+                
+            if op_name == "output_values":
+                items = output_values(items=items, args=args)
+                
+            if op_name == "order":
+                items = order_set(items=items, args=args)
+                
+            if op_name == "slice":
+                items = slice_set(items=items, args=args)
+        
+    return Response({"aggregations": aggregations, "items": items})
+
+# ################ get Notification
+@api_view(["POST"])
+def get_notifications(request: Request):
+
+    body = request.data
+    aggregations = {}
+
+    items = Notification.objects.all().values()
+
+    for operation in body:
+        op_name = operation.get("operation")
+        args = operation.get("args")
+
+        if op_name and args:
+            if op_name == "filter":
+                items = filter_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "exclude":
+                items = exclude_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "annotate":
+                items = annotate_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "aggregate":
+                aggregations.update(**aggregate_set(items=items, args=args, aggregations=aggregations))
+                
+            if op_name == "output_values":
+                items = output_values(items=items, args=args)
+                
+            if op_name == "order":
+                items = order_set(items=items, args=args)
+                
+            if op_name == "slice":
+                items = slice_set(items=items, args=args)
+        
+    return Response({"aggregations": aggregations, "items": items})
+
+# ################ get Advertisement
+@api_view(["POST"])
+def get_advertisements(request: Request):
+
+    body = request.data
+    aggregations = {}
+
+    items = Advertisement.objects.all().values()
+
+    for operation in body:
+        op_name = operation.get("operation")
+        args = operation.get("args")
+
+        if op_name and args:
+            if op_name == "filter":
+                items = filter_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "exclude":
+                items = exclude_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "annotate":
+                items = annotate_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "aggregate":
+                aggregations.update(**aggregate_set(items=items, args=args, aggregations=aggregations))
+                
+            if op_name == "output_values":
+                items = output_values(items=items, args=args)
+                
+            if op_name == "order":
+                items = order_set(items=items, args=args)
+                
+            if op_name == "slice":
+                items = slice_set(items=items, args=args)
+        
+    return Response({"aggregations": aggregations, "items": items})
+
+# ################ get AdImage
+@api_view(["POST"])
+def get_adimages(request: Request):
+
+    body = request.data
+    aggregations = {}
+
+    items = AdImage.objects.all().values()
+
+    for operation in body:
+        op_name = operation.get("operation")
+        args = operation.get("args")
+
+        if op_name and args:
+            if op_name == "filter":
+                items = filter_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "exclude":
+                items = exclude_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "annotate":
+                items = annotate_set(items=items, args=args, aggregations=aggregations)
+                
+            if op_name == "aggregate":
+                aggregations.update(**aggregate_set(items=items, args=args, aggregations=aggregations))
+                
+            if op_name == "output_values":
+                items = output_values(items=items, args=args)
+                
+            if op_name == "order":
+                items = order_set(items=items, args=args)
+                
+            if op_name == "slice":
+                items = slice_set(items=items, args=args)
+        
+    return Response({"aggregations": aggregations, "items": items})
+
 
 # ##################### Generic GET View (not used yet)
 def get_entries(request: Request, entry_id: int = None, model_name: str = None):
@@ -723,58 +1405,4 @@ tables = {
     "orderstate": OrderState,
 }
 
-# Query Params fields:
-#   value:  
-#           - (value=field) name of a field to be returned in the response
-#           - if not included in the params then all fields will be returned
-#           - you can also access fields related to the row of the table (Foreign Key)
-#               ex: when retrieving products you can specify: "value=store__full_name",
-#               this is because Products has a field "store" which is foreign key to Store.
-# 
-#   filter: 
-#           - (filter=field:value) name of field to filter through
-#           - all fields will be joined with an "&" (no complex expressions yet).
-#               ex: when retrieving products you can specify: 
-#                       "filter=price:100", "filter=price__lt:200",
-#                                or "filter=store__full_name:something"
-# 
-#           - you can also use reverse relations, like filtering stores based on 
-#               their products prices, ex: "filter=product__price__gte:300", 
-#                   this returns stores that have at least one product that its price is 
-#                   greater than or equal (gte) 300.
-#               
-#   annotate:   
-#           - (annotate=func, field, returnField) choose a function to be applied on all objects              
-#               individually on some field (after filtering).
-#                   ex: table Store "annotate=max, product__price, max_price"
-#               this will add a "max_price" field to all stores in the list, and its value is
-#               the max price of the products of each store.
-#           - functions: max, min, avg, count, sum
-#               
-#   aggregate: 
-#           - same as annotate, it applies the function to all objects but instead of adding
-#               a max_price field to all stores, it's added once and its value is the max price 
-#               of all the products of the stores in the list.
-#           - same functions
-#               
-#   order_by:
-#           - some field to order the list by, ex: 
-#               "order_by=price" for ascending order, or 
-#               "order_by=-price" for descending order.
-# 
-#   offset: 
-#           - nbr of elements to ignore in the beginning of the list
-#   limit:
-#           - max nbr of elements in the list
-# 
-# - all the params are optional
-# - check the models to understand the reverse relations, 
-#       ex: Product has a foreign key to Store named "store", and Store has a reverse relation 
-#           to Product which is called "products"
-#       
-# - don't include reverse relations in "value" because for ex:"value=product__price" in Store
-#       a store has many products so Django doesn't know what product to add its price to the store,
-#       (actually you can, but you're gonna get redundant elements (this is weird))
-# 
-# - you can use reverse relations with: filter, annotate, aggregation, order_by.
-# 
+# ################ 

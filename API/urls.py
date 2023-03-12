@@ -49,8 +49,23 @@ urlpatterns = [
     path("notification/", views.NotificationView.as_view()),
     path("notification/<int:notification_id>/", views.NotificationView.as_view()),
     
+    path("get_stores/", views.get_stores),
+    path("get_client/", views.get_clients),
+    path("get_groups/", views.get_groups),
+    path("get_products/", views.get_products),
+    path("get_categories/", views.get_categories),
+    path("get_packtypes/", views.get_packtypes),
+    path("get_coupons/", views.get_coupons),
+    path("get_couponcounts/", views.get_couponcounts),
+    path("get_orders/", views.get_orders),
+    path("get_orderstates/", views.get_orderstates),
+    path("get_ordercoupons/", views.get_ordercoupons),
+    path("get_orderitems/", views.get_orderitems),
+    path("get_carts/", views.get_carts),
+    path("get_cartitems/", views.get_cartitems),
+    path("get_notifications/", views.get_notifications),
+    
     # path("check_coupons/", more_functions.check_coupons),
     # path("check_products/", more_functions.check_products),
     # path("create_order/", more_functions.create_order),
 ]
-

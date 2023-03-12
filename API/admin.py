@@ -20,5 +20,7 @@ admin.site.register(
         Cart,
         CartItem,
         Notification,
+        Advertisement,
+        AdImage,
     )
 )
