@@ -1,0 +1,382 @@
+
+urls:
+	"get_{table_name}/"
+	"create_{table_name}/"
+	"update_{table_name}/"
+	"delete_{table_name}/"
+
+	table_name:
+		- exact name of the class in "models.py"
+		- lower-case
+		- in singular not plural
+
+Retrieve Stores:
+	
+	"store_id" is optional
+	if "store_id" is provided in the url, then "filter" in "query_params" or "body" will be ignored
+
+	GET "/get_store/" or "/get_store/{store_id}/":
+		request :
+			query_params: "filter", "exclude", "output", "annotate", "aggregate", "order", "offset", "limit"
+			body: None
+
+		response:
+			{ "items": [stores], "aggregations": {} }
+
+	POST "/get_store/" or "/get_store/{store_id}/": 
+		request :
+			query_params: None
+			body: [operations]
+
+		response:
+			{ "items": [stores], "aggregations": {} }
+	
+	notes:
+
+
+Create Store:
+
+	there is no "store_id"
+
+	POST "/create_store/":
+		query_params: None
+		body ==> all store_fields (except "image_url" and "created_at") 
+			+ "image" or the default one will be used
+
+		algo:
+			if (there's no body) or (body is empty):
+				return Error 
+
+			if there's an image:
+				if image=="default":
+					create_store(store_fields)
+
+					if creating the Store is successful:
+						save the "DEFAULT_STORE_IMG" image, return the store
+					
+					else:
+						return error
+
+				else:
+					decode_image()
+
+					if decoding is successful:
+						create_store(store_fields)
+
+						if creating the Store is successful:
+							save the new image, return the store
+
+						else:
+							return error
+							
+					else:
+						return Error
+
+			else: //no image was sent
+				create_store(store_fields)
+
+				if creating the Store is successful:
+					save the "DEFAULT_STORE_IMG" image, return the store
+				
+				else:
+					return Error
+
+
+Update Store:
+			
+	"store_id" is required
+
+	PUT "/update_store/{store_id}/":
+		query_params: None
+		body ==> all store_fields (except "image_url" and "created_at") 
+			+ "image" or "set_default_img: true", or 
+			neither of those 2 if you want to keep the image as it is
+
+		algo:
+
+			if (there's no body) or (body is empty) or (store not found):
+				return Error 
+
+			if there's an image:
+				if image=="default":
+					update_store(store_fields)
+
+					if updating the Store is successful:
+						delete old image, save the "DEFAULT_STORE_IMG" image, return the store
+					
+					else:
+						return error
+
+				else:
+					decode_image()
+
+					if decoding is successful:
+						update_store(store_fields)
+
+						if updating the Store is successful:
+							delete old image, save the new image, return the store
+
+						else:
+							return error
+							
+					else:
+						return Error
+
+			else: //no image was sent
+				update_store(store_fields)
+
+				if updating the Store is successful:
+					don't change the image,return store
+				
+				else:
+					return Error
+		
+
+Delete Store:
+
+	"store_id" is required
+
+	DELETE "/delete_store/{store_id}/":
+		query_params: None
+		body: None
+
+
+
+// get using JSON:
+//////////////////////////////////////////////////
+annotate functions and their params:
+
+	funcs:
+
+		append: f
+
+		max: f
+		min: f
+		avg: f
+		sum: f
+		count: f
+		
+		abs: n
+		power: x, y
+		mod: x, y
+		round: n, r
+		sqrt: n
+
+		reverse: s
+		concat: s: [str | {}]
+		lower: s
+		upper: s
+		length: s
+
+	examples:
+		{
+			"operation": "annotate",
+			"args": {
+				"function": "append",
+				"output": "st_name",
+				"f": "store__store_name",
+			}
+		}
+
+		{
+			"operation": "annotate",
+			"args": {
+				"function": "append",
+				"output": "st_name",
+				"f": {"field": "store__store_name"},
+			}
+		}
+	
+	notes:
+		all params can be either string or objects:
+
+			"f": {"field": "latitude"} == "f": "latitude"
+			"f": {"value": 5}
+			"f": {"aggregate": "nbr_stores"}
+			
+			if it's a string then it's considered a field
+			
+		except concat, it accepts a list of str of objects
+	
+//////////////////////////////////////////////////
+aggregate functions and their params:
+
+	funcs:
+		max: f
+		min: f
+		avg: f
+		sum: f
+		count: f
+
+//////////////////////////////////////////////////
+filter, exclude params:
+	conditions: list
+	distinct: bool
+
+	note: to use the "Not" operator use a "-" before the condition, ex:
+	{		
+		"operation": "filter",
+		"args": {
+			"conditions": [
+				{
+					"-id": 3 
+				}
+			]
+		}
+	}
+
+	this would return all objects whose id!=3
+
+//////////////////////////////////////////////////
+
+order params:
+	fields: str | [str]
+
+//////////////////////////////////////////////////
+
+output params:
+	values: [str | {str: str}]
+	ex: values: ["id", {"st": "store_name"}, "latitude"]
+
+//////////////////////////////////////////////////
+
+slice params:
+	offset: int
+	limit: int
+
+	note: if you have to use this, make sure it's the last operation, 
+				don't use anything after it (i'm not sure why)
+
+//////////////////////////////////////////////////
+
+query_params for GET:
+	
+	filter=condition:values
+	exclude=condition:values
+
+	annotate=func,field,output
+	aggregate=func,field,output
+	output=field ===> (this was value or values)
+	
+	order=field  ===> (this was order_by)
+	offset=int
+	limit=int
+	
+	- (annotate, aggregate, filter, exclude, output, order) you can use them multiple times 
+	but (offset, limit) only once each
+
+	- all params are optional
+	- order of operations: [output, annotate, filter, exclude, order, offset and limit, aggregate]
+			this means you can filter through values you've calculated using annotate.
+
+
+
+notes:
+	- if "item_id" is provided in the url then filter in query_params or body will be ignored
+	- "item_id" is required when updating or deleting an item from any table
+	- you can only create update or delete one item per request from any table
+	- there are 20 tables (7 of them are "Intermediary", meaning they represent Many-To-Many relationships):
+		Store
+		Client
+		Group
+		GroupClient 		(Simple Intermediary, [Group -> Client])
+		StoreFavClient 	(Simple Intermediary, [Store -> Client])
+		ClientFavStore 	(Simple Intermediary, [Client -> Store])
+		Product
+		Category
+		PackType
+		Coupon
+		CouponClient		(Intermediary, [Coupon -> Client])
+		Order
+		OrderState
+		OrderCoupon			(Intermediary, [Order -> Coupon])
+		OrderProduct		(Intermediary, [Order -> Product])
+		Cart
+		CartProduct			(Intermediary, [Cart -> Product])
+		Notification
+		Advertisement
+		AdImage
+
+	- for Intermediary tables you can access and modify them just like any other table.
+	- "Simple Intermediary": is a table that holds only 2 foreign keys, no extra fields.
+	- for "Intermediary" you can control them in another way:
+			(but for now only the "Simple Intermediary" works [1, 2, 3], the other 4 not yet)
+
+		Many-To-Many relationships:
+
+			1-Store to Client: 
+				GET : "/store_fav_clients/{store_id}/"
+				
+				POST: "/store_fav_clients/{store_id}/"
+					body: {"operation": "add", "clients": [{"client_id": int}]}
+								{"operation": "set", "clients": [{"client_id": int}]}
+								{"operation": "remove", "clients": [{"client_id": int}]}
+								{"operation": "clear"}
+
+
+			2-Client to Store:
+				GET : "/client_fav_stores/{client_id}/"
+				
+				POST: "/client_fav_stores/{client_id}/"
+					body: {"operation": "add", "stores": [{"store_id": int}]}
+								{"operation": "set", "stores": [{"store_id": int}]}
+								{"operation": "remove", "stores": [{"store_id": int}]} 
+								{"operation": "clear"}
+
+
+			3-Group to Client:
+				GET : "/group_clients/{group_id}/"
+
+				POST: "/group_clients/{group_id}/"
+					body: {"operation": "add", "clients": [{"client_id": int}]} 
+								{"operation": "set", "clients": [{"client_id": int}]}
+								{"operation": "remove", "clients": [{"client_id": int}]}
+								{"operation": "clear"}
+
+			
+			4-Cart to Product: (doesn't work yet)
+				GET : "/cart_products/{cart_id}/"
+				
+				POST: "/cart_products/{cart_id}/"
+					body: {"operation": "add", "products": [{"product_id": int, "quantity": int}]}
+								{"operation": "set", "products": [{"product_id": int, "quantity": int}]}
+								{"operation": "update", "products": [{"product_id": int, "quantity": int}]}
+								{"operation": "remove", "products": [{"product_id": int}]}
+								{"operation": "clear"}
+
+
+			5-Order to Product: (doesn't work yet)
+				GET : "/order_products/{order_id}/"
+
+				POST: "/order_products/{order_id}/"
+					body: {"operation": "add", "products": [{"product_id", "quantity", "discount", "original_price", "new_price"}]}
+								{"operation": "set", "products": [{"product_id", "quantity", "discount", "original_price", "new_price"}]} 
+								{"operation": "update", "products": [{"product_id", "quantity", "discount", "original_price", "new_price"}]}
+								{"operation": "remove", "products": [{"product_id"}]} 
+								{"operation": "clear"}
+
+
+			6-Order to Coupon: (doesn't work yet)
+				GET : "/order_coupons/{order_id}/"
+
+				POST: "/order_coupons/{order_id}/"
+					body: {"operation": "add", "coupons": [{"coupon_id": int}]} 
+								{"operation": "set", "coupons": [{"coupon_id": int}]}
+								{"operation": "remove", "coupons": [{"coupon_id": int}]} 
+								{"operation": "clear"}
+
+
+			7-Coupon to Client: (doesn't work yet)
+				GET : "/coupon_counts/{coupon_id}/{client_id}/"
+
+
+	- when a store is created a folder will also be created to hold its image,
+		and when it is deleted, that folder is also deleted with the images inside (same for client, product...).
+
+
+things to work on later:
+	- log_in/log_out and sockets for notification (soon)
+
+	- for now you'll recieve the time_stamps as integers (seconds, not milli-senconds).
+	- all products are visible to all the clients.
+

@@ -1,316 +1,47 @@
-from functools import reduce
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.decorators import api_view
+
 from django.db.models import F, Case, Value, When, Q, Avg, Max, Min, Count, Sum
 from django.db.models.query import QuerySet
-import base64, io, pathlib
-from PIL import Image
+from django.db.models.functions.math import Abs, Power, Round, Sqrt, Mod
+from django.db.models.functions.text import Reverse, Concat, Lower, Upper, Length
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
+
+from functools import reduce
+from django.core.handlers.wsgi import WSGIRequest
 
 from API.models import *
-# ################ 
-calcul_classes = {
-    "avg": Avg,
-    "max": Max,
-    "min": Min,
-    "count": Count,
-    "sum": Sum,
-    "value": Value,
-    "append": F,
-}
+from API.some_functions import *
 # ################ 
 
-# Create your views here.
-# ################ some variables
-COUPON_FOUND = 0
-PRODUCT_FOUND = 1
-
-STORE_NOT_FOUND = -1
-CLIENT_NOT_FOUND = -2
-
-COUPON_NOT_FOUND = -3
-COUPON_NOT_ACTIVE = -5
-COUPON_USAGE_LIMIT = -7
-COUPON_WRONG_STORE = -9
-
-PRODUCT_NOT_FOUND = -2
-PRODUCT_WRONG_STORE = -4
-PRODUCT_NOT_AVAILABLE = -6
-PRODUCT_WRONG_PRICE = -8
-
-
-# ##################### Check Function
-def check_coupon(c_string: str, store_id: int, client_id: int):
-
-    coupon = Coupon.objects.filter(string=c_string).first()
-
-    if not coupon:
-        return {
-            "status": "fail",
-            "string": c_string,
-            "code": COUPON_NOT_FOUND,
-            "code_text": "COUPON_NOT_FOUND",
-        }
-    
-    if coupon.store_id != store_id:
-        return {
-            "status": "fail",
-            "string": c_string,
-            "code": PRODUCT_WRONG_STORE,
-            "code_text": "WRONG_STORE",
-        }
-
-    if not coupon.is_active:
-        return {
-            "status": "fail",
-            "string": c_string,
-            "code": COUPON_NOT_ACTIVE,
-            "code_text": "COUPON_NOT_ACTIVE",
-        }
-    
-    # this doesn't work anymore
-    if coupon.ordercoupons.filter(order__client__id=client_id).count() >= coupon.max_nbr_uses:
-        return {
-            "status": "fail",
-            "string": c_string,
-            "code": COUPON_USAGE_LIMIT,
-            "code_text": "COUPON_USAGE_LIMIT",
-        }
-    
-    return {
-        "status": "success",
-        "string": c_string,
-        "code": COUPON_FOUND,
-        "code_text": "COUPON_FOUND",
-        **Coupon.objects.filter(pk=coupon.id).values().first()
-    }
-
-@api_view(["POST"])
-def check_coupons(request: Request):
-
-    coupons = request.data["coupons"]
-    store_id = request.data["store_id"]
-    client_id = request.data["client_id"]
-
-    if not Client.objects.filter(pk=client_id).first():
-        return Response(
-            {
-                "status": "fail",
-                "code": CLIENT_NOT_FOUND,
-                "code_text": "CLIENT_NOT_FOUND",
-                "coupons": [],
-            }
-        )
-    
-    if not Store.objects.filter(pk=store_id).first():
-        return Response(
-            {
-                "status": "fail",
-                "code": STORE_NOT_FOUND,
-                "code_text": "STORE_NOT_FOUND",
-                "coupons": [],
-            }
-        )
-    
-    coupons = [check_coupon(c_string=coupon, store_id=store_id, client_id=client_id) for coupon in coupons]
-
-    return Response(
-        {
-            "status": "fail" if any(map(lambda c:c["status"]=="fail", coupons)) else "success",
-            "coupons": coupons
-        }
-    )
-
-# ########
-def check_product(product_id: int, quantity: int, store_id: int):
-
-    product = Product.objects.filter(pk=product_id).first()
-
-    if not product:
-        return {
-            "status": "fail",
-            "id": product_id,
-            "code": PRODUCT_NOT_FOUND,
-            "code_text": "PRODUCT_NOT_FOUND",
-        }
-    
-    if product.store_id != store_id:
-        return {
-            "status": "fail",
-            "id": product_id,
-            "code": PRODUCT_WRONG_STORE,
-            "code_text": "WRONG_STORE",
-        }
-
-    if product.is_available is False:
-        return {
-            "status": "fail",
-            "id": product_id,
-            "code": PRODUCT_NOT_AVAILABLE,
-            "code_text": "PRODUCT_NOT_AVAILABLE",
-        }
-    
-    return {
-        "status": "success",
-        "id": product_id,
-        "quantity": quantity,
-        "code": PRODUCT_FOUND,
-        "code_text": "PRODUCT_FOUND",
-        **Product.objects.filter(pk=product.id).values().annotate(
-            category_name=Case(default="category__name")
-        ).first()
-    }
-
-@api_view(["POST"])
-def check_products(request: Request):
-
-    products = request.data["products"]
-    store_id = request.data["store_id"]
-
-    if not Store.objects.filter(pk=store_id).first():
-        return Response(
-            {
-                "status": "fail",
-                "code": STORE_NOT_FOUND,
-                "code_text": "STORE_NOT_FOUND",
-                "products": [],
-            }
-        )
-
-    products = [check_product(product_id=p["id"], store_id=store_id) for p in products]
-
-    return Response(
-        {
-            "status": "fail" if any(map(lambda p:p["status"]=="fail", products)) else "success",
-            "products": products
-        }
-    )
-
-# #####################
-@api_view(["POST"])
-def create_order(request: Request):
-
-    store_id = request.data["store_id"]
-    client_id = request.data["client_id"]
-    products = request.data["products"]
-    coupons = request.data["coupons"]
-
-    if not Client.objects.filter(pk=client_id).first():
-        return Response(
-            {
-                "status": "fail",
-                "code": CLIENT_NOT_FOUND,
-                "code_text": "CLIENT_NOT_FOUND",
-                "coupons": [],
-                "products": [],
-            }
-        )
-
-    if not Store.objects.filter(pk=store_id).first():
-        return Response(
-            {
-                "status": "fail",
-                "code": STORE_NOT_FOUND,
-                "code_text": "STORE_NOT_FOUND",
-                "coupons": [],
-                "products": [],
-            }
-        )
-    
-    coupons = [
-        check_coupon(c_string=coupon, store_id=store_id, client_id=client_id) 
-        for coupon in coupons
-    ]
-
-    products = [
-        check_product(product_id=p["id"], quantity=p["quantity"], store_id=store_id) 
-        for p in products
-    ]
-
-    if (any(map(lambda c:c["status"]=="fail", coupons)) or 
-        any(map(lambda p:p["status"]=="fail", products))):
-
-        return Response(
-            {
-                "status": "fail",
-                "products": products,
-                "coupons": coupons,
-            }
-        )
-    
-    for coupon in coupons:
-        if coupon["coupon_type"] == "All":
-
-            for product in products:
-                product["discount"] += coupon["discount"]
-
-        elif coupon["coupon_type"] == "Category":
-
-            for product in list(filter(lambda p:p["category_id"]==coupon["target_id"], products)):
-                product["discount"] += coupon["discount"]
-
-        elif coupon["coupon_type"] == "Product":
-
-            for product in list(filter(lambda p:p["id"]==coupon["target_id"], products)):
-                product["discount"] += coupon["discount"]
-
-    total_price = 0
-    for product in products:
-        product["new_price"] = round(
-            (product["price"] * (1 - (product["discount"]/100))) * product["quantity"], 2
-        )
-        total_price += product["price"]
-
-    new_ordre = Order.objects.create(
-        store_id = store_id,
-        client_id = client_id,
-        total_price = round(total_price, 2),
-    )
-
-    for product in products:
-        OrderItem.objects.create(
-            order_id=new_ordre.id,
-            product_id=product["id"],
-
-            discount=product["discount"],
-            quantity=product["quantity"],
-            original_price=product["price"],
-            new_price=product["new_price"],
-        )
-
-    for coupon in coupons:
-        OrderCoupon.objects.create(
-            coupon_id=coupon["id"],
-            order_id=new_ordre.id,
-        )
-
-    return Response(
-        {
-            "status": "success",
-            "products": products,
-            "coupons": coupons,
-            "total_price": total_price,
-        }
-    )
-
-# #####################
+# ##################### query params for GET requests
 def extract_params(request: Request):
 
     params = request.query_params
-    values = params.getlist("value", [])
+
+    values = params.getlist("output", [])
+    values = list(map(lambda el: el.split(":") if ":" in el else el, values))
+    values_args = list(filter(lambda el:isinstance(el, str), values))
+
+    values_kwargs = list(filter(lambda el:isinstance(el, list), values))
+    values_kwargs = dict(values_kwargs)
+    values_kwargs = {key.strip(): F(value.strip()) for key, value in values_kwargs.items()}
+
+    values = {"args": values_args, "kwargs": values_kwargs}
 
     annotations = get_annotations(params.getlist("annotate", []))
     aggregations = get_annotations(params.getlist("aggregate", []))
 
-    filters = dict(list(map(
-        lambda el:(el.split(":")[0], eval(f'"{el.split(":")[1]}"')
-                   ), params.getlist("filter", []))))
+    filters = dict(list(map(lambda el:el.split(":"), params.getlist("filter", []))))
+    exclusions = dict(list(map(lambda el:el.split(":"), params.getlist("exclude", []))))
 
-    order_by = params.get("order_by", "pk")
+    order = params.getlist("order", ["pk"])
     offset = int(params.get("offset", 0))
     limit = int(params.get("limit", 1_000_000))
 
-    return order_by, offset, limit, filters, values, annotations, aggregations
+    return order, offset, limit, filters, exclusions, values, annotations, aggregations
 
 def get_annotations(annot_list: list):
 
@@ -337,173 +68,568 @@ def get_annotations(annot_list: list):
     return annotations
 
 # #####################
-def decode_image(encoded_image: str):
+class RequestHandler:
 
-    decoded_image = base64.b64decode(bytes(encoded_image, encoding="utf-8"))
-    return Image.open(io.BytesIO(decoded_image))
+    def __init__(self, items: QuerySet, operations: list) -> None:
+        self.items = items
+        self.operations = operations
+        self.aggregations = {}
 
-def copy_image(source_path: str, destination_path):
+    def filter_set(self, kwargs: dict):
 
-    if not pathlib.Path(destination_path).suffix:
-        destination_path += pathlib.Path(source_path).suffix
-
-    with open(source_path, mode="rb") as file_1:
-        with open(destination_path, mode="wb") as file_2:
-            file_2.write(file_1.read())
-
-# #####################
-def filter_set(items: QuerySet, args: dict, aggregations: dict = None):
-
-    q = create_filter(conditions=args.get("conditions", []), aggregations=aggregations)
-
-    if args.get("distinct", False):
-        return items.filter(q).distinct()
-    else:
-        return items.filter(q)
-
-def exclude_set(items: QuerySet, args: dict, aggregations: dict = None):
-
-    q = create_filter(conditions=args.get("conditions", []), aggregations=aggregations)
-
-    if args.get("distinct", False):
-        return items.exclude(q).distinct()
-    else:
-        return items.exclude(q)
-
-def annotate_set(items: QuerySet, args: dict, aggregations: dict = None):
-
-    func = args.get("function")
-    field = args.get("field")
-    output = args.get("output")
-
-    if func.lower() == "max":
-        value = Max(field, filter=create_filter(args.get("conditions", []), aggregations))
-
-    elif func.lower() == "min":
-        value = Min(field, filter=create_filter(args.get("conditions", []), aggregations))
-
-    elif func.lower() == "value":
-        value = Value(field, filter=create_filter(args.get("conditions", []), aggregations))
-
-    elif func.lower() == "avg":
-        value = Avg(field, filter=create_filter(args.get("conditions", []), aggregations))
-
-    elif func.lower() == "sum":
-        value = Sum(field, filter=create_filter(args.get("conditions", []), aggregations))
-
-    elif func.lower() == "count":
-        value = Count(field, distinct=args.get("distinct", False), 
-            filter=create_filter(args.get("conditions", []), aggregations)
-        )
-    elif func.lower() == "append":
-        value = F(field)
-        output = args.get("output", field)
-
-    return items.annotate(**{output: value}) if output else items.annotate(value)
-
-def aggregate_set(items: QuerySet, args: dict, aggregations: dict = None):
-
-    func = args.get("function")
-    field = args.get("field")
-    output = args.get("output")
-
-    if func.lower() == "max":
-        value = Max(field, filter=create_filter(args.get("conditions", []), aggregations))
-
-    elif func.lower() == "min":
-        value = Min(field, filter=create_filter(args.get("conditions", []), aggregations))
-
-    elif func.lower() == "value":
-        value = Value(field, filter=create_filter(args.get("conditions", []), aggregations))
-
-    elif func.lower() == "avg":
-        value = Avg(field, filter=create_filter(args.get("conditions", []), aggregations))
-
-    elif func.lower() == "sum":
-        value = Sum(field, filter=create_filter(args.get("conditions", []), aggregations))
+        if kwargs.get("distinct", False):
+            return self.items.filter(self.create_filter(kwargs.get("conditions", []))).distinct()
+        else:
+            return self.items.filter(self.create_filter(kwargs.get("conditions", [])))
         
-    elif func.lower() == "count":
-        value = Count(field, distinct=args.get("distinct", False), 
-            filter=create_filter(args.get("conditions", []), aggregations)
-        )
-    elif func.lower() == "append":
-        value = F(field)
-        output = args.get("output", field)
+    def exclude_set(self, kwargs: dict):
 
-    return items.aggregate(**{output: value}) if output else items.aggregate(value)
+        if kwargs.get("distinct", False):
+            return self.items.exclude(self.create_filter(kwargs.get("conditions", []))).distinct()
+        else:
+            return self.items.exclude(self.create_filter(kwargs.get("conditions", [])))
 
-def order_set(items: QuerySet, args: dict):
+    def order_set(self, kwargs: dict):
 
-    fields = args.get("fields", [])
+        fields = kwargs.get("fields", [])
 
-    if isinstance(fields, list):
-        return items.order_by(*fields)
+        if isinstance(fields, list):
+            return self.items.order_by(*fields)
+        
+        return self.items.order_by(fields)
     
-    elif isinstance(fields, str):
-        return items.order_by(fields)
-    
-    return items
+    def output_values(self, kwargs: dict):
 
-def slice_set(items: QuerySet, args: dict):
+        values = kwargs.get("values", [])
+        values_args = list(filter(lambda el:isinstance(el, str), values))
+        values_kwargs = list(filter(lambda el:isinstance(el, dict), values))
+        values_kwargs = reduce(lambda d, el: {**d, **el}, values_kwargs, {})
+        values_kwargs = {key: F(value) for key, value in values_kwargs.items()}
 
-    return items[args.get("offset", 0): args.get("offset", 0) + args.get("limit", 1_000_000)]
+        return self.items.values(*values_args, **values_kwargs)
 
-def output_values(items: QuerySet, args: dict):
+    def slice_set(self, kwargs: dict):
 
-    values = args.get("values", [])
-    values_args = list(filter(lambda el:isinstance(el, str), values))
-    values_kwargs = list(filter(lambda el:isinstance(el, dict), values))
-    values_kwargs = reduce(lambda d, el: {**d, **el}, values_kwargs, {})
-    values_kwargs = {key: F(value) for key, value in values_kwargs.items()}
+        offset = kwargs.get("offset", 0)
+        limit = kwargs.get("limit", 1_000_000)
+        return self.items[offset: offset + limit]
 
-    return items.values(*values_args, **values_kwargs)
+    def annotate_set(self, kwargs: dict):
 
-def create_filter(conditions: list, aggregations: dict = None):
+        output = kwargs.get("output")
 
-    if aggregations is None:
-        aggregations = {}
+        # if output is not None:
+        #     return self.items.annotate(**{output: self.get_expression(kwargs)})
+        # else:
+        #     return self.items.annotate(self.get_expression(kwargs))
 
-    q = Q()
-    for filter in conditions:
-        conditions = {}
-        for expression, value in filter.items():
+        if output is not None:
+            return self.items.annotate(**{output: self.get_annot_func(kwargs)})
+        else:
+            return self.items.annotate(self.get_annot_func(kwargs))
 
-            if isinstance(value, dict):
-                if "aggregation" in value:
-                    conditions[expression] = aggregations.get(value["aggregation"])
-                elif "field" in value:
-                    conditions[expression] = F(value["field"])
+    def aggregate_set(self, kwargs: dict):
 
-            elif isinstance(value, list):
-                conditions[expression] = list(map(
-                        lambda el:
-                        aggregations[el["aggregation"]] if (isinstance(el, dict) and "aggregation" in el)
-                        else F(el["field"]) if (isinstance(el, dict) and "field" in el) 
-                        else el
-                        , value
-                    )
-                )
+        output = kwargs.get("output")
 
-            else:
-                conditions[expression] = value
+        # if output is not None:
+        #     return self.items.aggregate(**{output: self.get_expression(kwargs)})
+        # else:
+        #     return self.items.aggregate(self.get_expression(kwargs))
 
-        q |= Q(**conditions)
+        if output is not None:
+            return self.items.aggregate(**{output: self.get_annot_func(kwargs)})
+        else:
+            return self.items.aggregate(self.get_annot_func(kwargs))
 
-    return q
+    # #####################
+    def apply_operations(self):
+
+        for operation in self.operations:
+            op_name = operation.get("operation")
+            args = operation.get("args")
+
+            self.apply_op(op_name=op_name, args=args)
+
+        return self.items, self.aggregations
+
+    def apply_op(self, op_name: str, args: dict):
+
+        if op_name and args:
+            if op_name == "aggregate":
+                self.aggregations.update(**self.aggregate_set(args))
+
+            elif op_name == "annotate":
+                self.items = self.annotate_set(args)
+
+            elif op_name == "exclude":
+                self.items = self.exclude_set(args)
+
+            elif op_name == "filter":
+                self.items = self.filter_set(args)
+
+            elif op_name == "order":
+                self.items = self.order_set(args)
+
+            elif op_name == "output":
+                self.items = self.output_values(args)
+
+            elif op_name == "slice":
+                self.items = self.slice_set(args)
+
+    # #####################
+    def Q_object(self, conditions):
+
+        if isinstance(conditions, list):
+            return reduce(lambda init_q, clause: init_q | self.Q_object(clause), conditions, Q())
+
+        elif isinstance(conditions, dict):
+            q = Q()
+            for key, value in conditions.items():
+
+                if key.startswith("-"):
+                    key = key[1:]
+                    q &= ~Q(**{key: self.get_expression(value, False)})
+                else:
+                    q &= Q(**{key: self.get_expression(value, False)})
+
+            # return Q(**{key: self.get_expression(value, False) for key, value in conditions.items()})
+
+        return q
+
+    def get_expression(self, kwargs, str_is_field: bool = True):
+        # sourcery skip: low-code-quality
+
+        if isinstance(kwargs, dict):
+
+            if "value" in kwargs:
+                return Value(kwargs["value"])
+            
+            elif "field" in kwargs:
+                return F(kwargs["field"])
+            
+            elif "aggregation" in kwargs:
+                return Value(self.aggregations[kwargs["aggregation"]])
+
+            func_name = kwargs["function"].lower()
+            args = kwargs["args"]
+            
+            if func_name=="value": 
+                return Value(args)
+            
+            elif func_name=="field": 
+                return F(args)
+            
+            elif func_name=="aggregation":
+                return Value(self.aggregations[args])
+            
+
+            elif func_name=="max": 
+                return Max(self.get_expression(args["f"], True), filter=self.Q_object(args.get("conditions", [])))
+            
+            elif func_name=="min": 
+                return Min(self.get_expression(args["f"], True), filter=self.Q_object(args.get("conditions", [])))
+            
+            elif func_name=="avg": 
+                return Avg(self.get_expression(args["f"], True), filter=self.Q_object(args.get("conditions", [])))
+            
+            elif func_name=="sum": 
+                return Sum(self.get_expression(args["f"], True), filter=self.Q_object(args.get("conditions", [])))
+            
+            elif func_name=="count": 
+                return Count(self.get_expression(args["f"], True), filter=self.Q_object(args.get("conditions", [])), 
+                            distinct=args.get("distinct", False))
+            
+
+            elif func_name=="abs": 
+                return Abs(self.get_expression(args["n"], True))
+            
+            elif func_name=="power": 
+                return Power(self.get_expression(args["x"], True), self.get_expression(args["y"], True))
+            
+            elif func_name=="round": 
+                return Round(self.get_expression(args["n"], True), self.get_expression(args.get("r", 0), True))
+            
+            elif func_name=="sqrt": 
+                return Sqrt(self.get_expression(args["n"], True))
+            
+            elif func_name=="mod": 
+                return Mod(self.get_expression(args["x"], True), self.get_expression(args["y"], True))
+            
+
+            elif func_name=="reverse": 
+                return Reverse(self.get_expression(args["s"], True))
+            
+            elif func_name=="concat": 
+
+                strings = args["s"]
+                if not isinstance(strings, list):
+                    strings = [strings]
+
+                strings = list(map(lambda el: self.get_expression(el, True), strings))
+                return Concat(*strings)
+            
+            elif func_name=="lower": 
+                return Lower(self.get_expression(args["s"], True))
+            
+            elif func_name=="upper": 
+                return Upper(self.get_expression(args["s"], True))
+            
+            elif func_name=="length": 
+                return Length(self.get_expression(args["s"], True))
+            
+
+        elif isinstance(kwargs, list):
+            return list(map(lambda el: self.get_expression(el, str_is_field), kwargs))
+        
+        elif isinstance(kwargs, str):
+            return F(kwargs) if str_is_field else Value(kwargs)
+
+        return Value(kwargs)
+
+    # #####################
+    def get_annot_func(self, kwargs: dict):  
+        # sourcery skip: low-code-quality
+        
+        func_name = kwargs["function"].lower()
+        if func_name=="append": 
+            return self.get_value(kwargs["f"])
+        
+        elif func_name=="max": 
+            return Max(self.get_value(kwargs["f"]), filter=self.create_filter(kwargs.get("conditions", [])))
+
+        elif func_name=="min": 
+            return Min(self.get_value(kwargs["f"]), filter=self.create_filter(kwargs.get("conditions", [])))
+        
+        elif func_name=="avg": 
+            return Avg(self.get_value(kwargs["f"]), filter=self.create_filter(kwargs.get("conditions", [])))
+        
+        elif func_name=="sum": 
+            return Sum(self.get_value(kwargs["f"]), filter=self.create_filter(kwargs.get("conditions", [])))
+        
+        elif func_name=="count": 
+            return Count(self.get_value(kwargs["f"]), filter=self.create_filter(kwargs.get("conditions", [])), 
+                        distinct=kwargs.get("distinct", False))
+        
+
+        elif func_name=="abs": 
+            return Abs(self.get_value(kwargs["n"]))
+        
+        elif func_name=="power": 
+            return Power(self.get_value(kwargs["x"]), self.get_value(kwargs["y"]))
+        
+        elif func_name=="round": 
+            return Round(self.get_value(kwargs["n"]), self.get_value(kwargs["r"]))
+        
+        elif func_name=="sqrt": 
+            return Sqrt(self.get_value(kwargs["n"]))
+        
+        elif func_name=="mod": 
+            return Mod(self.get_value(kwargs["x"]), self.get_value(kwargs["y"]))
+        
+
+        elif func_name=="reverse": 
+            return Reverse(self.get_value(kwargs["s"]))
+        
+        elif func_name=="concat": 
+
+            strings = kwargs["s"]
+            if not isinstance(strings, list):
+                strings = [strings]
+
+            strings = list(map(lambda el: self.get_value(el), strings))
+            return Concat(*strings)
+        
+        elif func_name=="lower": 
+            return Lower(self.get_value(kwargs["s"]))
+        
+        elif func_name=="upper": 
+            return Upper(self.get_value(kwargs["s"]))
+        
+        elif func_name=="length": 
+            return Length(self.get_value(kwargs["s"]))
+        
+    def get_value(self, arg, str_is_field: bool = True):
+
+        if isinstance(arg, str):
+            return F(arg) if str_is_field else Value(arg)
+        
+        elif isinstance(arg, dict):
+            if "field" in arg: return F(arg["field"])
+            if "value" in arg: return Value(arg["value"])
+            if "aggregate" in arg: return self.aggregations[arg["aggregate"]]
+
+        elif isinstance(arg, list):
+            return list(map(lambda el: self.get_value(el, str_is_field), arg))
+        
+        return Value(arg)
+
+    def create_filter(self, conditions):
+
+        if isinstance(conditions, list):
+            return reduce(lambda init_q, clause: init_q | self.create_filter(clause), conditions, Q())
+
+        elif isinstance(conditions, dict):
+            q = Q()
+            for key, value in conditions.items():
+
+                if key.startswith("-"):
+                    key = key[1:]
+                    q &= ~Q(**{key: self.get_value(value, str_is_field=False)})
+                else:
+                    q &= Q(**{key: self.get_value(value, str_is_field=False)})
+
+        return q
+
 
 # #####################
-# 1 - unchecked
-# 2 - checked:
-#     not accepted (reponse : message d'err)
-#     accepted:
-#       dilivery
-#         false (waiting)
-#         true -> lahget(cloturé) / lala(in the way)
+@receiver(post_delete, sender=Store, dispatch_uid="not unique string")
+@receiver(post_delete, sender=Client, dispatch_uid="not unique string")
+@receiver(post_delete, sender=Product, dispatch_uid="not unique string")
+@receiver(post_delete, sender=Category, dispatch_uid="not unique string")
+@receiver(post_delete, sender=Advertisement, dispatch_uid="not unique string")
+@receiver(post_delete, sender=AdImage, dispatch_uid="not unique string")
+def post_delete_func(sender, **kwargs):
 
-# 3 - cancel // 
+    instance = kwargs["instance"]
 
-# status : [mzal machafhach, 
-# B3atha w ray f trig, 
-# b3atha w lahget, 
-# lcommande fiha mouchkil(message err), 
-# y'anuliha]
+    if sender == Store:
+        delete_dir(instance.dir_path)
+
+    elif sender == Client:
+        delete_dir(instance.dir_path)
+
+    elif sender == Product:
+        delete_dir(instance.dir_path)
+
+    elif sender == Category:
+        delete_dir(instance.dir_path)
+
+    elif sender == Advertisement:
+        delete_dir(instance.dir_path)
+    
+    elif sender == AdImage:
+        delete_img(instance.url)
+
+
+def simple_middleware(get_response):
+    # One-time configuration and initialization.
+
+    def middleware(request: WSGIRequest):
+        # Code to be executed for each request before
+        # the view (and later middleware) are called.
+
+        # print("-"*50)
+        # print(f"middleware: {request}")
+        # print("-"*50)
+
+        response = get_response(request)
+
+        # Code to be executed for each request/response after
+        # the view is called.
+
+        return response
+
+    return middleware
+
+
+# @receiver(post_save, sender=OrderCoupon, dispatch_uid="not unique string")
+def post_save_order_coupon(sender, **kwargs):
+
+    if kwargs["created"]:
+        order_coupon =  kwargs["instance"]
+        coupon = order_coupon.coupon
+        client = order_coupon.order.client
+
+        coupon_client, created = CouponClient.objects.get_or_create(coupon_id=coupon.id, client_id=client.id)
+        if created:
+            coupon_client.count = 1
+        else:
+            coupon_client.count += 1
+
+        coupon_client.save()
+        coupon_client.refresh_from_db()
+        
+
+def decrement_coupon_count(id: int = None, coupon_id: int = None, client_id: int = None):
+
+    if id is not None:
+        coupon_client = CouponClient.objects.filter(id=id).first()
+    else:
+        coupon_client = CouponClient.objects.filter(coupon_id=coupon_id, client_id=client_id).first()
+
+    if coupon_client is None:
+        return False
+    
+    if coupon_client.count <= 1:
+        coupon_client.delete()
+    else:
+        coupon_client.count -= 1
+        coupon_client.save()
+
+    return True
+
+def increment_coupon_count(id: int = None, coupon_id: int = None, client_id: int = None):
+
+    if id is not None:
+        coupon_client = CouponClient.objects.filter(id=id).first()
+        if coupon_client is None:
+            return False
+        
+        coupon_client.count += 1
+        coupon_client.save()
+    else:
+        coupon_client, created = CouponClient.objects.get_or_create(coupon_id=coupon_id, client_id=client_id)
+
+        if not created:
+            coupon_client.count += 1
+            coupon_client.save()
+        
+    return True
+
+
+@api_view(["POST", "PUT"])
+def create_order(request: Request):
+
+    kwargs = request.data
+    products = kwargs.get("products", [])
+    coupons = kwargs.get("coupons", [])
+
+    for product in products:
+        p = Product.objects.filter(pk=product["product_id"]).first()
+        if p is None:
+            return Response({"error": f"product: {product['product_id']} does not exist"}, status=400)
+        
+        elif not p.is_available:
+            return Response({"error": f"product: {product['product_id']} is not available"}, status=400)
+
+    for coupon in coupons:
+        c = Coupon.objects.filter(pk=coupon["coupon_id"]).first()
+        if c is None:
+            return Response({"error": f"coupon: {coupon['coupon_id']} does not exist"}, status=400)
+        
+        elif not c.is_active:
+            return Response({"error": f"coupon: {coupon['coupon_id']} is not active"}, status=400)
+
+    # all products and coupons do exist in the DB
+
+    order = Order.create(store_id=kwargs["store_id"], client_id=kwargs["client_id"], total_price=kwargs["total_price"])
+    
+    for coupon in coupons:
+        OrderCoupon.create(order_id=order.id, coupon_id=coupon["coupon_id"])
+        increment_coupon_count(coupon_id=coupon["coupon_id"], client_id=kwargs["client_id"])
+
+    for product in products:
+        OrderProduct.create(
+            order_id=order.id, product_id=product["product_id"], 
+            quantity=product["quantity"],
+            discount=product["discount"],
+            original_price=product["original_price"],
+            new_price=product["new_price"],
+        )
+
+    return Response(order.to_dict())
+
+
+@api_view(["POST", "PUT"])
+def update_order(request: Request, order_id: int):
+
+    order = Order.objects.filter(pk=order_id).first()
+    if order is None:
+        return Response({"error": f"order: {order_id} does not exist"}, status=400)
+
+    kwargs = request.data
+    products = kwargs.get("products", [])
+    coupons = kwargs.get("coupons", [])
+
+    for product in products:
+        p = Product.objects.filter(pk=product["product_id"]).first()
+        if p is None:
+            return Response({"error": f"product: {product['product_id']} does not exist"}, status=400)
+        
+        elif not p.is_available:
+            return Response({"error": f"product: {product['product_id']} is not available"}, status=400)
+
+    for coupon in coupons:
+        c = Coupon.objects.filter(pk=coupon["coupon_id"]).first()
+        if c is None:
+            return Response({"error": f"coupon: {coupon['coupon_id']} does not exist"}, status=400)
+        
+        elif not c.is_active:
+            return Response({"error": f"coupon: {coupon['coupon_id']} is not active"}, status=400)
+
+    # all products and coupons do exist in the DB
+    
+    for coupon in order.coupons.all():
+        decrement_coupon_count(coupon_id=coupon.id, client_id=order.client_id)
+
+    order.coupons.clear()
+    order.products.clear()
+    order.total_price = kwargs["total_price"]
+    order.save()
+    
+    for coupon in coupons:
+        OrderCoupon.create(order_id=order.id, coupon_id=coupon["coupon_id"])
+        increment_coupon_count(coupon_id=coupon["coupon_id"], client_id=order.client_id)
+
+    for product in products:
+        OrderProduct.create(
+            order_id=order.id, product_id=product["product_id"], 
+            quantity=product["quantity"],
+            discount=product["discount"],
+            original_price=product["original_price"],
+            new_price=product["new_price"],
+        )
+
+    return Response(order.to_dict())
+
+
+@api_view(["POST", "PUT"])
+def update_order_state(request: Request, order_id: int):
+
+    order = Order.objects.filter(pk=order_id).first()
+    if order is None:
+        return Response({"error": f"order: {order_id} does not exist"}, status=400)
+
+    kwargs = request.data
+    state = kwargs["state"]
+    description = kwargs["description"]
+    updated_by_store = kwargs.get("updated_by_store", True)
+
+    order.current_state = OrderState.objects.create(
+        order_id=order_id, 
+        state=state, 
+        description=description, 
+        updated_by_store=updated_by_store,
+    )
+    order.save()
+
+    # creating a notification
+
+    action = order.current_state.state
+    
+    if updated_by_store:
+        store_id = order.store_id
+        client_id = None
+        message = f"Order({order.id}) was {action} by store({store_id})"
+    else:
+        store_id = None
+        client_id = order.client_id
+        message = f"Order({order.id}) was {action} by client({client_id})"
+
+
+    Notification.create(
+        store_id=store_id,
+        client_id=client_id,
+        action=action,
+        message=message
+    )
+
+    return Response(order.to_dict())
+
+
+@api_view(["DELETE"])
+def delete_order(request: Request, order_id: int):
+
+
+    return Response("nothing")

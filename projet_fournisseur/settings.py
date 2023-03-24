@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "API",
     "corsheaders",
     "rest_framework",
+    "lookup_extensions",
 ]
 
 MIDDLEWARE = [
@@ -57,6 +58,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+
+    "API.more_functions.simple_middleware",
 ]
 
 ROOT_URLCONF = "projet_fournisseur.urls"
@@ -168,8 +171,9 @@ CORS_ALLOW_HEADERS = [
 
 # Default images
 # ////////////////////////////
-DEFAULT_STORE_IMG = "static/defaults/store_img.jpg"
-DEFAULT_CLIENT_IMG = "static/defaults/client_img.jpg"
-DEFAULT_CATEGORY_IMG = "static/defaults/category_img.jpg"
-DEFAULT_PRODUCT_IMG = "static/defaults/product_img.jpg"
+DEFAULT_STORE_IMG_PATH = "static/defaults/store_img.jpg"
+DEFAULT_CLIENT_IMG_PATH = "static/defaults/client_img.jpg"
+DEFAULT_PRODUCT_IMG_PATH = "static/defaults/product_img.jpg"
+DEFAULT_CATEGORY_IMG_PATH = "static/defaults/category_img.jpg"
+DEFAULT_AD_IMG_PATH = "static/defaults/ad_img.jpg"
 

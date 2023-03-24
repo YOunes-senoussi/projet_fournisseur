@@ -1,0 +1,307 @@
+[
+  {
+    "id": 2,
+    "group_id": 1,
+    "client_id": 12
+  },
+  {
+    "id": 3,
+    "group_id": 1,
+    "client_id": 4
+  },
+  {
+    "id": 4,
+    "group_id": 21,
+    "client_id": 20
+  },
+  {
+    "id": 5,
+    "group_id": 2,
+    "client_id": 2
+  },
+  {
+    "id": 6,
+    "group_id": 22,
+    "client_id": 11
+  },
+  {
+    "id": 7,
+    "group_id": 22,
+    "client_id": 5
+  },
+  {
+    "id": 8,
+    "group_id": 23,
+    "client_id": 6
+  },
+  {
+    "id": 9,
+    "group_id": 23,
+    "client_id": 2
+  },
+  {
+    "id": 10,
+    "group_id": 4,
+    "client_id": 9
+  },
+  {
+    "id": 11,
+    "group_id": 4,
+    "client_id": 8
+  },
+  {
+    "id": 15,
+    "group_id": 25,
+    "client_id": 4
+  },
+  {
+    "id": 16,
+    "group_id": 25,
+    "client_id": 3
+  },
+  {
+    "id": 17,
+    "group_id": 25,
+    "client_id": 16
+  },
+  {
+    "id": 18,
+    "group_id": 7,
+    "client_id": 11
+  },
+  {
+    "id": 19,
+    "group_id": 27,
+    "client_id": 15
+  },
+  {
+    "id": 20,
+    "group_id": 27,
+    "client_id": 3
+  },
+  {
+    "id": 21,
+    "group_id": 27,
+    "client_id": 9
+  },
+  {
+    "id": 22,
+    "group_id": 8,
+    "client_id": 8
+  },
+  {
+    "id": 23,
+    "group_id": 28,
+    "client_id": 6
+  },
+  {
+    "id": 24,
+    "group_id": 28,
+    "client_id": 16
+  },
+  {
+    "id": 25,
+    "group_id": 28,
+    "client_id": 8
+  },
+  {
+    "id": 26,
+    "group_id": 9,
+    "client_id": 13
+  },
+  {
+    "id": 27,
+    "group_id": 29,
+    "client_id": 9
+  },
+  {
+    "id": 28,
+    "group_id": 10,
+    "client_id": 4
+  },
+  {
+    "id": 29,
+    "group_id": 30,
+    "client_id": 17
+  },
+  {
+    "id": 30,
+    "group_id": 30,
+    "client_id": 5
+  },
+  {
+    "id": 31,
+    "group_id": 30,
+    "client_id": 14
+  },
+  {
+    "id": 32,
+    "group_id": 12,
+    "client_id": 1
+  },
+  {
+    "id": 33,
+    "group_id": 12,
+    "client_id": 3
+  },
+  {
+    "id": 34,
+    "group_id": 32,
+    "client_id": 4
+  },
+  {
+    "id": 35,
+    "group_id": 32,
+    "client_id": 14
+  },
+  {
+    "id": 36,
+    "group_id": 13,
+    "client_id": 2
+  },
+  {
+    "id": 37,
+    "group_id": 33,
+    "client_id": 16
+  },
+  {
+    "id": 38,
+    "group_id": 34,
+    "client_id": 5
+  },
+  {
+    "id": 39,
+    "group_id": 34,
+    "client_id": 19
+  },
+  {
+    "id": 40,
+    "group_id": 35,
+    "client_id": 20
+  },
+  {
+    "id": 41,
+    "group_id": 35,
+    "client_id": 8
+  },
+  {
+    "id": 42,
+    "group_id": 35,
+    "client_id": 16
+  },
+  {
+    "id": 43,
+    "group_id": 16,
+    "client_id": 2
+  },
+  {
+    "id": 44,
+    "group_id": 16,
+    "client_id": 7
+  },
+  {
+    "id": 45,
+    "group_id": 16,
+    "client_id": 5
+  },
+  {
+    "id": 46,
+    "group_id": 36,
+    "client_id": 2
+  },
+  {
+    "id": 47,
+    "group_id": 36,
+    "client_id": 12
+  },
+  {
+    "id": 48,
+    "group_id": 17,
+    "client_id": 8
+  },
+  {
+    "id": 49,
+    "group_id": 17,
+    "client_id": 15
+  },
+  {
+    "id": 50,
+    "group_id": 37,
+    "client_id": 20
+  },
+  {
+    "id": 51,
+    "group_id": 18,
+    "client_id": 11
+  },
+  {
+    "id": 52,
+    "group_id": 38,
+    "client_id": 5
+  },
+  {
+    "id": 53,
+    "group_id": 38,
+    "client_id": 18
+  },
+  {
+    "id": 54,
+    "group_id": 38,
+    "client_id": 15
+  },
+  {
+    "id": 55,
+    "group_id": 19,
+    "client_id": 5
+  },
+  {
+    "id": 56,
+    "group_id": 19,
+    "client_id": 18
+  },
+  {
+    "id": 57,
+    "group_id": 19,
+    "client_id": 9
+  },
+  {
+    "id": 58,
+    "group_id": 39,
+    "client_id": 12
+  },
+  {
+    "id": 59,
+    "group_id": 39,
+    "client_id": 11
+  },
+  {
+    "id": 60,
+    "group_id": 20,
+    "client_id": 5
+  },
+  {
+    "id": 61,
+    "group_id": 20,
+    "client_id": 2
+  },
+  {
+    "id": 62,
+    "group_id": 20,
+    "client_id": 6
+  },
+  {
+    "id": 63,
+    "group_id": 1,
+    "client_id": 2
+  },
+  {
+    "id": 64,
+    "group_id": 1,
+    "client_id": 3
+  },
+  {
+    "id": 65,
+    "group_id": 1,
+    "client_id": 1
+  }
+]
