@@ -4,209 +4,239 @@
     "state": "Created",
     "description": "",
     "time_stamp": 1676512481,
-    "order_id": 42
+    "order_id": 42,
+    "updated_by_store": true
   },
   {
     "id": 2,
     "state": "Created",
     "description": "",
     "time_stamp": 1676512483,
-    "order_id": 43
+    "order_id": 43,
+    "updated_by_store": true
   },
   {
     "id": 3,
     "state": "Created",
     "description": "",
     "time_stamp": 1676512484,
-    "order_id": 44
+    "order_id": 44,
+    "updated_by_store": true
   },
   {
     "id": 4,
     "state": "Created",
     "description": "",
     "time_stamp": 1676512484,
-    "order_id": 45
+    "order_id": 45,
+    "updated_by_store": true
   },
   {
     "id": 5,
     "state": "Created",
     "description": "",
     "time_stamp": 1676512484,
-    "order_id": 46
+    "order_id": 46,
+    "updated_by_store": true
   },
   {
     "id": 6,
     "state": "Created",
     "description": "",
     "time_stamp": 1676512484,
-    "order_id": 47
+    "order_id": 47,
+    "updated_by_store": true
   },
   {
     "id": 7,
     "state": "Created",
     "description": "",
     "time_stamp": 1676512484,
-    "order_id": 48
+    "order_id": 48,
+    "updated_by_store": true
   },
   {
     "id": 8,
     "state": "Created",
     "description": "",
     "time_stamp": 1676512484,
-    "order_id": 49
+    "order_id": 49,
+    "updated_by_store": true
   },
   {
     "id": 9,
     "state": "Created",
     "description": "",
     "time_stamp": 1676512484,
-    "order_id": 50
+    "order_id": 50,
+    "updated_by_store": true
   },
   {
     "id": 10,
     "state": "Created",
     "description": "",
     "time_stamp": 1676512484,
-    "order_id": 51
+    "order_id": 51,
+    "updated_by_store": true
   },
   {
     "id": 11,
     "state": "Created",
     "description": "",
     "time_stamp": 1676512484,
-    "order_id": 52
+    "order_id": 52,
+    "updated_by_store": true
   },
   {
     "id": 12,
     "state": "Created",
     "description": "",
     "time_stamp": 1676512485,
-    "order_id": 53
+    "order_id": 53,
+    "updated_by_store": true
   },
   {
     "id": 13,
     "state": "Created",
     "description": "",
     "time_stamp": 1676512485,
-    "order_id": 54
+    "order_id": 54,
+    "updated_by_store": true
   },
   {
     "id": 14,
     "state": "Created",
     "description": "",
     "time_stamp": 1676512485,
-    "order_id": 55
+    "order_id": 55,
+    "updated_by_store": true
   },
   {
     "id": 15,
     "state": "Created",
     "description": "",
     "time_stamp": 1676512485,
-    "order_id": 56
+    "order_id": 56,
+    "updated_by_store": true
   },
   {
     "id": 16,
     "state": "Created",
     "description": "",
     "time_stamp": 1676512485,
-    "order_id": 57
+    "order_id": 57,
+    "updated_by_store": true
   },
   {
     "id": 17,
     "state": "Created",
     "description": "",
     "time_stamp": 1676512485,
-    "order_id": 58
+    "order_id": 58,
+    "updated_by_store": true
   },
   {
     "id": 18,
     "state": "Created",
     "description": "",
     "time_stamp": 1676512485,
-    "order_id": 59
+    "order_id": 59,
+    "updated_by_store": true
   },
   {
     "id": 19,
     "state": "Created",
     "description": "",
     "time_stamp": 1676512485,
-    "order_id": 60
+    "order_id": 60,
+    "updated_by_store": true
   },
   {
     "id": 20,
     "state": "Created",
     "description": "",
     "time_stamp": 1676512485,
-    "order_id": 61
+    "order_id": 61,
+    "updated_by_store": true
   },
   {
     "id": 21,
     "state": "Created",
     "description": "",
     "time_stamp": 1676512485,
-    "order_id": 62
+    "order_id": 62,
+    "updated_by_store": true
   },
   {
     "id": 22,
     "state": "Created",
     "description": "",
     "time_stamp": 1676512485,
-    "order_id": 63
+    "order_id": 63,
+    "updated_by_store": true
   },
   {
     "id": 23,
     "state": "Created",
     "description": "",
     "time_stamp": 1676512485,
-    "order_id": 64
+    "order_id": 64,
+    "updated_by_store": true
   },
   {
     "id": 24,
     "state": "Created",
     "description": "",
     "time_stamp": 1676512485,
-    "order_id": 65
+    "order_id": 65,
+    "updated_by_store": true
   },
   {
     "id": 25,
     "state": "Created",
     "description": "",
     "time_stamp": 1676512485,
-    "order_id": 66
+    "order_id": 66,
+    "updated_by_store": true
   },
   {
     "id": 26,
     "state": "Created",
     "description": "",
     "time_stamp": 1676512486,
-    "order_id": 67
+    "order_id": 67,
+    "updated_by_store": true
   },
   {
     "id": 27,
     "state": "Created",
     "description": "",
     "time_stamp": 1676512486,
-    "order_id": 68
+    "order_id": 68,
+    "updated_by_store": true
   },
   {
     "id": 28,
     "state": "Created",
     "description": "",
     "time_stamp": 1676512486,
-    "order_id": 69
+    "order_id": 69,
+    "updated_by_store": true
   },
   {
     "id": 29,
     "state": "Created",
     "description": "",
     "time_stamp": 1676512486,
-    "order_id": 70
+    "order_id": 70,
+    "updated_by_store": true
   },
   {
     "id": 30,
     "state": "Created",
     "description": "",
     "time_stamp": 1676512486,
-    "order_id": 71
+    "order_id": 71,
+    "updated_by_store": true
   }
 ]

@@ -3,7 +3,7 @@
     "id": 1,
     "store_name": "Photobean",
     "full_name": "Garrett Kleinmann",
-    "image_url": "static\\stores\\store_1\\store_1.png",
+    "image_url": "static/stores/store_1/store_1.png",
     "phone_number": "5973734929",
     "password": "2qc434C",
     "e_mail": "gkleinmann0@digg.com",
@@ -11,14 +11,15 @@
     "commune": "Tifra",
     "address": "08 Carey Avenue",
     "created_at": 1676046670,
-    "latitude": null,
-    "longitude": 5.727688
+    "latitude": 34.84539,
+    "longitude": 5.727688,
+    "dir_path": "static/stores/store_1"
   },
   {
     "id": 2,
     "store_name": "Zazio",
     "full_name": "Radcliffe Petican",
-    "image_url": "static\\stores\\store_2\\store_2.png",
+    "image_url": "static/stores/store_2/store_2.png",
     "phone_number": "6364165636",
     "password": "mpgNjT",
     "e_mail": "rpetican1@narod.ru",
@@ -27,13 +28,14 @@
     "address": "090 8th Junction",
     "created_at": 1676046671,
     "latitude": 34.845346,
-    "longitude": 5.747442
+    "longitude": 5.747442,
+    "dir_path": "static/stores/store_2"
   },
   {
     "id": 3,
     "store_name": "Jabbercube",
     "full_name": "Lavena Iffe",
-    "image_url": "static\\stores\\store_3\\store_3.png",
+    "image_url": "static/stores/store_3/store_3.png",
     "phone_number": "7825250433",
     "password": "CZWj4NligQCS",
     "e_mail": "liffe2@ted.com",
@@ -42,13 +44,14 @@
     "address": "4428 Sunbrook Center",
     "created_at": 1676046671,
     "latitude": 34.849818,
-    "longitude": 5.722894
+    "longitude": 5.722894,
+    "dir_path": "static/stores/store_3"
   },
   {
     "id": 4,
     "store_name": "Eabox",
     "full_name": "Kelsey Lemin",
-    "image_url": "static\\stores\\store_4\\store_4.png",
+    "image_url": "static/stores/store_4/store_4.png",
     "phone_number": "9571946083",
     "password": "GtxqxuuF90",
     "e_mail": "klemin3@fastcompany.com",
@@ -57,13 +60,14 @@
     "address": "7739 Darwin Avenue",
     "created_at": 1676046671,
     "latitude": 34.847065,
-    "longitude": 5.738048
+    "longitude": 5.738048,
+    "dir_path": "static/stores/store_4"
   },
   {
     "id": 5,
     "store_name": "Babbleblab",
     "full_name": "Barbi Farleigh",
-    "image_url": "static\\stores\\store_5\\store_5.png",
+    "image_url": "static/stores/store_5/store_5.png",
     "phone_number": "4393222257",
     "password": "ubxW7M",
     "e_mail": "bfarleigh4@tripadvisor.com",
@@ -72,13 +76,14 @@
     "address": "80 Colorado Park",
     "created_at": 1676046671,
     "latitude": 34.835102,
-    "longitude": 5.751549
+    "longitude": 5.751549,
+    "dir_path": "static/stores/store_5"
   },
   {
     "id": 6,
     "store_name": "Topicstorm",
     "full_name": "Crin Hattigan",
-    "image_url": "static\\stores\\store_6\\store_6.png",
+    "image_url": "static/stores/store_6/store_6.png",
     "phone_number": "3401925614",
     "password": "ZMUgaVn",
     "e_mail": "chattigan5@hexun.com",
@@ -87,13 +92,14 @@
     "address": "85297 Granby Court",
     "created_at": 1676046671,
     "latitude": 34.853541,
-    "longitude": 5.712644
+    "longitude": 5.712644,
+    "dir_path": "static/stores/store_6"
   },
   {
     "id": 7,
     "store_name": "Kazio",
     "full_name": "Yule De Cristofalo",
-    "image_url": "static\\stores\\store_7\\store_7.png",
+    "image_url": "static/stores/store_7/store_7.png",
     "phone_number": "4823916701",
     "password": "IbdXnINb",
     "e_mail": "yde6@nps.gov",
@@ -102,13 +108,14 @@
     "address": "8537 Forster Terrace",
     "created_at": 1676046671,
     "latitude": 34.859938,
-    "longitude": 5.750136
+    "longitude": 5.750136,
+    "dir_path": "static/stores/store_7"
   },
   {
     "id": 8,
     "store_name": "Oodoo",
     "full_name": "Garey Dunning",
-    "image_url": "static\\stores\\store_8\\store_8.png",
+    "image_url": "static/stores/store_8/store_8.png",
     "phone_number": "7737987415",
     "password": "gzMVBWV",
     "e_mail": "gdunning7@webnode.com",
@@ -117,13 +124,14 @@
     "address": "72686 Golf Parkway",
     "created_at": 1676046671,
     "latitude": 34.835328,
-    "longitude": 5.724566
+    "longitude": 5.724566,
+    "dir_path": "static/stores/store_8"
   },
   {
     "id": 9,
     "store_name": "Quinu",
     "full_name": "Ianthe Ordelt",
-    "image_url": "static\\stores\\store_9\\store_9.png",
+    "image_url": "static/stores/store_9/store_9.png",
     "phone_number": "6249894648",
     "password": "X0TxxdvuhyD9",
     "e_mail": "iordelt8@mit.edu",
@@ -132,13 +140,14 @@
     "address": "9 American Pass",
     "created_at": 1676046671,
     "latitude": 34.854053,
-    "longitude": 5.720704
+    "longitude": 5.720704,
+    "dir_path": "static/stores/store_9"
   },
   {
     "id": 10,
     "store_name": "Rhyloo",
     "full_name": "Brod Gatecliff",
-    "image_url": "static\\stores\\store_10\\store_10.png",
+    "image_url": "static/stores/store_10/store_10.png",
     "phone_number": "2556456530",
     "password": "hDYIKoP",
     "e_mail": "bgatecliff9@thetimes.co.uk",
@@ -147,13 +156,14 @@
     "address": "6 Corscot Way",
     "created_at": 1676046671,
     "latitude": 34.841007,
-    "longitude": 5.750139
+    "longitude": 5.750139,
+    "dir_path": "static/stores/store_10"
   },
   {
     "id": 11,
     "store_name": "Browsebug",
     "full_name": "Aguie Jermey",
-    "image_url": "static\\stores\\store_11\\store_11.png",
+    "image_url": "static/stores/store_11/store_11.png",
     "phone_number": "9211263216",
     "password": "J42tHC9",
     "e_mail": "ajermeya@cbslocal.com",
@@ -162,13 +172,14 @@
     "address": "340 Center Pass",
     "created_at": 1676046671,
     "latitude": 34.836082,
-    "longitude": 5.73254
+    "longitude": 5.73254,
+    "dir_path": "static/stores/store_11"
   },
   {
     "id": 12,
     "store_name": "Meevee",
     "full_name": "Tomkin Tivnan",
-    "image_url": "static\\stores\\store_12\\store_12.png",
+    "image_url": "static/stores/store_12/store_12.png",
     "phone_number": "8622359341",
     "password": "iv1SGt2PU8GI",
     "e_mail": "ttivnanb@dell.com",
@@ -177,13 +188,14 @@
     "address": "27792 Mitchell Place",
     "created_at": 1676046671,
     "latitude": 34.861554,
-    "longitude": 5.741778
+    "longitude": 5.741778,
+    "dir_path": "static/stores/store_12"
   },
   {
     "id": 13,
     "store_name": "Quamba",
     "full_name": "Del Menguy",
-    "image_url": "static\\stores\\store_13\\store_13.png",
+    "image_url": "static/stores/store_13/store_13.png",
     "phone_number": "1645889833",
     "password": "xi76CUXra4T",
     "e_mail": "dmenguyc@howstuffworks.com",
@@ -192,13 +204,14 @@
     "address": "295 Steensland Road",
     "created_at": 1676046671,
     "latitude": 34.857478,
-    "longitude": 5.743734
+    "longitude": 5.743734,
+    "dir_path": "static/stores/store_13"
   },
   {
     "id": 14,
     "store_name": "Avaveo",
     "full_name": "Quintin Blood",
-    "image_url": "static\\stores\\store_14\\store_14.png",
+    "image_url": "static/stores/store_14/store_14.png",
     "phone_number": "4075378570",
     "password": "Htiau5X4",
     "e_mail": "qbloodd@sphinn.com",
@@ -207,13 +220,14 @@
     "address": "00 Logan Junction",
     "created_at": 1676046671,
     "latitude": 34.844927,
-    "longitude": 5.742667
+    "longitude": 5.742667,
+    "dir_path": "static/stores/store_14"
   },
   {
     "id": 15,
     "store_name": "Jabberstorm",
     "full_name": "Danyette Shorte",
-    "image_url": "static\\stores\\store_15\\store_15.png",
+    "image_url": "static/stores/store_15/store_15.png",
     "phone_number": "6863777568",
     "password": "lLFNLxEoS3gV",
     "e_mail": "dshortee@census.gov",
@@ -222,13 +236,14 @@
     "address": "78356 Warner Way",
     "created_at": 1676046671,
     "latitude": 34.863385,
-    "longitude": 5.753524
+    "longitude": 5.753524,
+    "dir_path": "static/stores/store_15"
   },
   {
     "id": 16,
     "store_name": "Lazz",
     "full_name": "Claudius Jon",
-    "image_url": "static\\stores\\store_16\\store_16.png",
+    "image_url": "static/stores/store_16/store_16.png",
     "phone_number": "7862644626",
     "password": "JupLTRC4OOU",
     "e_mail": "cjonf@wufoo.com",
@@ -237,13 +252,14 @@
     "address": "04 Derek Alley",
     "created_at": 1676046671,
     "latitude": 34.852728,
-    "longitude": 5.74157
+    "longitude": 5.74157,
+    "dir_path": "static/stores/store_16"
   },
   {
     "id": 17,
     "store_name": "Vidoo",
     "full_name": "Val Rothert",
-    "image_url": "static\\stores\\store_17\\store_17.png",
+    "image_url": "static/stores/store_17/store_17.png",
     "phone_number": "4518050612",
     "password": "DoTxBuJ",
     "e_mail": "vrothertg@ask.com",
@@ -252,13 +268,14 @@
     "address": "160 Mesta Trail",
     "created_at": 1676046671,
     "latitude": 34.840504,
-    "longitude": 5.734534
+    "longitude": 5.734534,
+    "dir_path": "static/stores/store_17"
   },
   {
     "id": 18,
     "store_name": "Photobug",
     "full_name": "Noell Feldbaum",
-    "image_url": "static\\stores\\store_18\\store_18.png",
+    "image_url": "static/stores/store_18/store_18.png",
     "phone_number": "2841777587",
     "password": "vTVAJDbS40",
     "e_mail": "nfeldbaumh@amazon.com",
@@ -267,13 +284,14 @@
     "address": "8 Oak Valley Center",
     "created_at": 1676046671,
     "latitude": 34.842776,
-    "longitude": 5.752156
+    "longitude": 5.752156,
+    "dir_path": "static/stores/store_18"
   },
   {
     "id": 19,
     "store_name": "Kwilith",
     "full_name": "Jacintha Rack",
-    "image_url": "static\\stores\\store_19\\store_19.png",
+    "image_url": "static/stores/store_19/store_19.png",
     "phone_number": "8312852884",
     "password": "k4McGPic0f",
     "e_mail": "jracki@clickbank.net",
@@ -282,13 +300,14 @@
     "address": "66 Comanche Park",
     "created_at": 1676046671,
     "latitude": 34.851055,
-    "longitude": 5.736437
+    "longitude": 5.736437,
+    "dir_path": "static/stores/store_19"
   },
   {
     "id": 20,
     "store_name": "Skinte",
     "full_name": "Edwin Klimshuk",
-    "image_url": "static\\stores\\store_20\\store_20.png",
+    "image_url": "static/stores/store_20/store_20.png",
     "phone_number": "3042854646",
     "password": "c4cPFFPiyyl",
     "e_mail": "eklimshukj@miibeian.gov.cn",
@@ -297,6 +316,7 @@
     "address": "2 Emmet Street",
     "created_at": 1676046671,
     "latitude": 34.850506,
-    "longitude": 5.738282
+    "longitude": 5.738282,
+    "dir_path": "static/stores/store_20"
   }
 ]

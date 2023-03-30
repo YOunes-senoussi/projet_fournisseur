@@ -1,0 +1,139 @@
+urls:
+	"get_{table_name}/"
+	"create_{table_name}/"
+	"update_{table_name}/"
+	"delete_{table_name}/"
+
+	table_name:
+		- exact name of the class in "models.py"
+		- lower-case
+		- in singular not plural
+
+Retrieve Stores:
+	
+	"store_id" is optional
+	if "store_id" is provided in the url, then "filter" in "query_params" or "body" will be ignored
+
+	GET "/get_store/" or "/get_store/{store_id}/":
+		request :
+			query_params: "filter", "exclude", "output", "annotate", "aggregate", "order", "offset", "limit"
+			body: None
+
+		response:
+			{ "items": [stores], "aggregations": {} }
+
+	POST "/get_store/" or "/get_store/{store_id}/": 
+		request :
+			query_params: None
+			body: [operations]
+
+		response:
+			{ "items": [stores], "aggregations": {} }
+	
+
+Create Store:
+
+	there is no "store_id"
+
+	POST "/create_store/":
+		query_params: None
+		body ==> all store_fields (except "image_url" and "created_at") 
+			+ "image" or the default one will be used
+
+		algo:
+			if (there's no body) or (body is empty):
+				return Error 
+
+			if there's an image:
+				if image=="default":
+					create_store(store_fields)
+
+					if creating the Store is successful:
+						save the "DEFAULT_STORE_IMG" image, return the store
+					
+					else:
+						return error
+
+				else:
+					decode_image()
+
+					if decoding is successful:
+						create_store(store_fields)
+
+						if creating the Store is successful:
+							save the new image, return the store
+
+						else:
+							return error
+							
+					else:
+						return Error
+
+			else: //no image was sent
+				create_store(store_fields)
+
+				if creating the Store is successful:
+					save the "DEFAULT_STORE_IMG" image, return the store
+				
+				else:
+					return Error
+
+
+Update Store:
+			
+	"store_id" is required
+
+	PUT "/update_store/{store_id}/":
+		query_params: None
+		body ==> all store_fields (except "image_url" and "created_at") 
+			+ "image" or "set_default_img: true", or 
+			neither of those 2 if you want to keep the image as it is
+
+		algo:
+
+			if (there's no body) or (body is empty) or (store not found):
+				return Error 
+
+			if there's an image:
+				if image=="default":
+					update_store(store_fields)
+
+					if updating the Store is successful:
+						delete old image, save the "DEFAULT_STORE_IMG" image, return the store
+					
+					else:
+						return error
+
+				else:
+					decode_image()
+
+					if decoding is successful:
+						update_store(store_fields)
+
+						if updating the Store is successful:
+							delete old image, save the new image, return the store
+
+						else:
+							return error
+							
+					else:
+						return Error
+
+			else: //no image was sent
+				update_store(store_fields)
+
+				if updating the Store is successful:
+					don't change the image,return store
+				
+				else:
+					return Error
+		
+
+Delete Store:
+
+	"store_id" is required
+
+	DELETE "/delete_store/{store_id}/":
+		query_params: None
+		body: None
+

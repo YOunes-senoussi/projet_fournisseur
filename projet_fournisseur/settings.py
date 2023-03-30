@@ -46,7 +46,9 @@ INSTALLED_APPS = [
     "API",
     "corsheaders",
     "rest_framework",
+    "rest_framework.authtoken",
     "lookup_extensions",
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -81,6 +83,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "projet_fournisseur.wsgi.application"
+ASGI_APPLICATION = "projet_fournisseur.asgi.application"
 
 
 # Database
@@ -176,4 +179,10 @@ DEFAULT_CLIENT_IMG_PATH = "static/defaults/client_img.jpg"
 DEFAULT_PRODUCT_IMG_PATH = "static/defaults/product_img.jpg"
 DEFAULT_CATEGORY_IMG_PATH = "static/defaults/category_img.jpg"
 DEFAULT_AD_IMG_PATH = "static/defaults/ad_img.jpg"
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ]
+}
 

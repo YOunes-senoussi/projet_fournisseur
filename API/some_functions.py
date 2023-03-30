@@ -188,38 +188,6 @@ def delete_dir(dir_path):
 
 
 """
-import json
-
-def pop_tab(file_name: str):
-
-    with open(f"old_data\\{file_name}.json", mode="r", encoding="utf8") as file:
-        json_data = json.load(fp=file)
-        model = get_model(file_name)
-        for el in json_data:
-            model.objects.create(**el)
-
-def get_model(name: str):
-
-    if name=="store": return Store
-    elif name=="client": return Client
-    elif name=="group": return Group
-    elif name=="category": return Category
-    elif name=="packtype": return PackType
-    elif name=="product": return Product
-    elif name=="coupon": return Coupon
-    elif name=="couponclient": return CouponClient
-    elif name=="order": return Order
-    elif name=="orderstate": return OrderState
-    elif name=="ordercoupon": return OrderCoupon
-    elif name=="orderproduct": return OrderProduct
-    elif name=="cart": return Cart
-    elif name=="cartproduct": return CartProduct
-    elif name=="advertisement": return Advertisement
-    elif name=="adimage": return AdImage
-    elif name=="notification": return Notification
-    elif name=="groupclients": return GroupClient
-    elif name=="storefavclients": return StoreFavClient
-    elif name=="clientfavstores": return ClientFavStore
 
 """
 

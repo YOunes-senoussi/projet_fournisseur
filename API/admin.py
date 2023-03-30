@@ -17,9 +17,9 @@ admin.site.register(
         OrderState,
         OrderCoupon,
         OrderProduct,
-        Cart,
-        CartProduct,
-        Notification,
+        ClientProduct,
+        StoreNotification,
+        ClientNotification,
         Advertisement,
         AdImage,
     )

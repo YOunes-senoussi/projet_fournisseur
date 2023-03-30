@@ -1,7 +1,9 @@
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.decorators import api_view
+from rest_framework.authtoken.models import Token
 
+from django.conf import settings
 from django.db.models import F, Case, Value, When, Q, Avg, Max, Min, Count, Sum
 from django.db.models.query import QuerySet
 from django.db.models.functions.math import Abs, Power, Round, Sqrt, Mod
@@ -42,6 +44,7 @@ def extract_params(request: Request):
     limit = int(params.get("limit", 1_000_000))
 
     return order, offset, limit, filters, exclusions, values, annotations, aggregations
+
 
 def get_annotations(annot_list: list):
 
@@ -118,11 +121,6 @@ class RequestHandler:
 
         output = kwargs.get("output")
 
-        # if output is not None:
-        #     return self.items.annotate(**{output: self.get_expression(kwargs)})
-        # else:
-        #     return self.items.annotate(self.get_expression(kwargs))
-
         if output is not None:
             return self.items.annotate(**{output: self.get_annot_func(kwargs)})
         else:
@@ -131,11 +129,6 @@ class RequestHandler:
     def aggregate_set(self, kwargs: dict):
 
         output = kwargs.get("output")
-
-        # if output is not None:
-        #     return self.items.aggregate(**{output: self.get_expression(kwargs)})
-        # else:
-        #     return self.items.aggregate(self.get_expression(kwargs))
 
         if output is not None:
             return self.items.aggregate(**{output: self.get_annot_func(kwargs)})
@@ -177,7 +170,7 @@ class RequestHandler:
             elif op_name == "slice":
                 self.items = self.slice_set(args)
 
-    # #####################
+    # ##################### Unused
     def Q_object(self, conditions):
 
         if isinstance(conditions, list):
@@ -382,22 +375,22 @@ class RequestHandler:
         return q
 
 
-# #####################
+# ##################### Signals
 @receiver(post_delete, sender=Store, dispatch_uid="not unique string")
 @receiver(post_delete, sender=Client, dispatch_uid="not unique string")
 @receiver(post_delete, sender=Product, dispatch_uid="not unique string")
 @receiver(post_delete, sender=Category, dispatch_uid="not unique string")
 @receiver(post_delete, sender=Advertisement, dispatch_uid="not unique string")
 @receiver(post_delete, sender=AdImage, dispatch_uid="not unique string")
-def post_delete_func(sender, **kwargs):
-
-    instance = kwargs["instance"]
+def post_delete_func(sender, instance=None, **kwargs):
 
     if sender == Store:
         delete_dir(instance.dir_path)
+        User.objects.filter(pk=instance.account_id).delete()
 
     elif sender == Client:
         delete_dir(instance.dir_path)
+        User.objects.filter(pk=instance.account_id).delete()
 
     elif sender == Product:
         delete_dir(instance.dir_path)
@@ -411,46 +404,31 @@ def post_delete_func(sender, **kwargs):
     elif sender == AdImage:
         delete_img(instance.url)
 
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+    if created:
+        Token.objects.create(user=instance)
 
+# ##################### MiddleWare
 def simple_middleware(get_response):
-    # One-time configuration and initialization.
 
     def middleware(request: WSGIRequest):
-        # Code to be executed for each request before
-        # the view (and later middleware) are called.
 
-        # print("-"*50)
-        # print(f"middleware: {request}")
-        # print("-"*50)
-
+        # token = request.headers.get("Authorization")
+        # if token is None:
+        #     return Response("no token was provided", status=400)
+        
+        # token = token.lstrip("Token ")
+        # print(f"{token=}")
+        # print(f"{request.path=}")
+        
         response = get_response(request)
-
-        # Code to be executed for each request/response after
-        # the view is called.
 
         return response
 
     return middleware
 
-
-# @receiver(post_save, sender=OrderCoupon, dispatch_uid="not unique string")
-def post_save_order_coupon(sender, **kwargs):
-
-    if kwargs["created"]:
-        order_coupon =  kwargs["instance"]
-        coupon = order_coupon.coupon
-        client = order_coupon.order.client
-
-        coupon_client, created = CouponClient.objects.get_or_create(coupon_id=coupon.id, client_id=client.id)
-        if created:
-            coupon_client.count = 1
-        else:
-            coupon_client.count += 1
-
-        coupon_client.save()
-        coupon_client.refresh_from_db()
-        
-
+# #####################
 def decrement_coupon_count(id: int = None, coupon_id: int = None, client_id: int = None):
 
     if id is not None:
@@ -487,99 +465,91 @@ def increment_coupon_count(id: int = None, coupon_id: int = None, client_id: int
         
     return True
 
+# ##################### Specific Order Views
+# ################ some variables
+SUCCESS = 100
+FAIL = -100
+
+COUPON_FOUND = 0
+PRODUCT_FOUND = 1
+
+STORE_NOT_FOUND = -1
+CLIENT_NOT_FOUND = -2
+
+COUPON_NOT_FOUND = -3
+COUPON_NOT_ACTIVE = -5
+COUPON_USAGE_LIMIT = -7
+COUPON_WRONG_STORE = -9
+COUPON_NO_PRODUCTS = -11
+
+PRODUCT_NOT_FOUND = -2
+PRODUCT_WRONG_STORE = -4
+PRODUCT_NOT_AVAILABLE = -6
+PRODUCT_WRONG_PRICE = -8
 
 @api_view(["POST", "PUT"])
 def create_order(request: Request):
 
-    kwargs = request.data
-    products = kwargs.get("products", [])
-    coupons = kwargs.get("coupons", [])
+    store_id = request.data.get("store_id", None)
+    client_id = request.data.get("client_id", None)
+    products_qtes = request.data.get("products", [])
+    coupons_ids = request.data.get("coupons", [])
+    description = request.data.get("description", "")
 
+    if not Client.objects.filter(pk=client_id).exists():
+        return Response(f"Client ({client_id}) doesn't exist", status=400)
+
+    if not Store.objects.filter(pk=store_id).exists():
+        return Response(f"Store ({store_id}) doesn't exist", status=400)
+
+    products_ids = list(map(lambda p:p["product_id"], products_qtes))
+    products_qtes = dict(list(map(lambda p:(p["product_id"], p["quantity"]), products_qtes)))
+    products = Product.objects.filter(store_id=store_id, id__in=products_ids).values()
+    list(map(lambda product: product.update({"quantity": products_qtes[product["id"]]}), products))
+
+    coupons = Coupon.objects.filter(store_id=store_id, id__in=coupons_ids).values()
+
+    for coupon_id in coupons:
+        for product in products:
+            if ((coupon_id["coupon_type"]=="all") or 
+                (coupon_id["coupon_type"]=="category" and product["category_id"]==coupon_id["target_id"]) or 
+                (coupon_id["coupon_type"]=="product" and product["id"]==coupon_id["target_id"])):
+                product["discount"] += coupon_id["discount"]
+
+    total_price = 0
     for product in products:
-        p = Product.objects.filter(pk=product["product_id"]).first()
-        if p is None:
-            return Response({"error": f"product: {product['product_id']} does not exist"}, status=400)
-        
-        elif not p.is_available:
-            return Response({"error": f"product: {product['product_id']} is not available"}, status=400)
+        product["new_price"] = round(product["price"]*product["quantity"]*(1-(product["discount"]/100)), 2)
+        total_price += product["new_price"]
 
-    for coupon in coupons:
-        c = Coupon.objects.filter(pk=coupon["coupon_id"]).first()
-        if c is None:
-            return Response({"error": f"coupon: {coupon['coupon_id']} does not exist"}, status=400)
-        
-        elif not c.is_active:
-            return Response({"error": f"coupon: {coupon['coupon_id']} is not active"}, status=400)
-
-    # all products and coupons do exist in the DB
-
-    order = Order.create(store_id=kwargs["store_id"], client_id=kwargs["client_id"], total_price=kwargs["total_price"])
-    
-    for coupon in coupons:
-        OrderCoupon.create(order_id=order.id, coupon_id=coupon["coupon_id"])
-        increment_coupon_count(coupon_id=coupon["coupon_id"], client_id=kwargs["client_id"])
+    order = Order.create(store_id=store_id, client_id=client_id, total_price=round(total_price, 2))
 
     for product in products:
         OrderProduct.create(
-            order_id=order.id, product_id=product["product_id"], 
-            quantity=product["quantity"],
+            order_id=order.id,
+            product_id=product["id"],
             discount=product["discount"],
-            original_price=product["original_price"],
+            quantity=product["quantity"],
+            original_price=product["price"],
             new_price=product["new_price"],
         )
 
-    return Response(order.to_dict())
+    for coupon_id in coupons_ids:
+        OrderCoupon.create(order_id=order.id, coupon_id=coupon_id)
+        increment_coupon_count(coupon_id=coupon_id, client_id=client_id)
 
-
-@api_view(["POST", "PUT"])
-def update_order(request: Request, order_id: int):
-
-    order = Order.objects.filter(pk=order_id).first()
-    if order is None:
-        return Response({"error": f"order: {order_id} does not exist"}, status=400)
-
-    kwargs = request.data
-    products = kwargs.get("products", [])
-    coupons = kwargs.get("coupons", [])
-
-    for product in products:
-        p = Product.objects.filter(pk=product["product_id"]).first()
-        if p is None:
-            return Response({"error": f"product: {product['product_id']} does not exist"}, status=400)
-        
-        elif not p.is_available:
-            return Response({"error": f"product: {product['product_id']} is not available"}, status=400)
-
-    for coupon in coupons:
-        c = Coupon.objects.filter(pk=coupon["coupon_id"]).first()
-        if c is None:
-            return Response({"error": f"coupon: {coupon['coupon_id']} does not exist"}, status=400)
-        
-        elif not c.is_active:
-            return Response({"error": f"coupon: {coupon['coupon_id']} is not active"}, status=400)
-
-    # all products and coupons do exist in the DB
-    
-    for coupon in order.coupons.all():
-        decrement_coupon_count(coupon_id=coupon.id, client_id=order.client_id)
-
-    order.coupons.clear()
-    order.products.clear()
-    order.total_price = kwargs["total_price"]
+    order.current_state = OrderState.create(
+        order_id=order.id, 
+        state="Created", 
+        description=description, 
+        updated_by_store=False,
+    )
     order.save()
-    
-    for coupon in coupons:
-        OrderCoupon.create(order_id=order.id, coupon_id=coupon["coupon_id"])
-        increment_coupon_count(coupon_id=coupon["coupon_id"], client_id=order.client_id)
 
-    for product in products:
-        OrderProduct.create(
-            order_id=order.id, product_id=product["product_id"], 
-            quantity=product["quantity"],
-            discount=product["discount"],
-            original_price=product["original_price"],
-            new_price=product["new_price"],
-        )
+    StoreNotification.create(
+        store_id=store_id,
+        action="Create",
+        message=f"Client({client_id}) created an Order({order.id})"
+    )
 
     return Response(order.to_dict())
 
@@ -609,27 +579,192 @@ def update_order_state(request: Request, order_id: int):
     action = order.current_state.state
     
     if updated_by_store:
-        store_id = order.store_id
-        client_id = None
-        message = f"Order({order.id}) was {action} by store({store_id})"
+        StoreNotification.create(
+            store_id=order.store_id,
+            action=order.current_state.state,
+            message=f"Store({order.store_id}) {action} Order({order.id})"
+        )
     else:
-        store_id = None
-        client_id = order.client_id
-        message = f"Order({order.id}) was {action} by client({client_id})"
-
-
-    Notification.create(
-        store_id=store_id,
-        client_id=client_id,
-        action=action,
-        message=message
-    )
+        ClientNotification.create(
+            client_id=order.client_id,
+            action=order.current_state.state,
+            message=f"Client({order.client_id}) {action} Order({order.id})"
+        )
 
     return Response(order.to_dict())
 
 
 @api_view(["DELETE"])
 def delete_order(request: Request, order_id: int):
+    return Response(Order.objects.filter(pk=order_id).delete())
 
 
-    return Response("nothing")
+@api_view(["POST"])
+def check_coupon(request: Request):
+
+    store_id = request.data.get("store_id", None)
+    client_id = request.data.get("client_id", None)
+    coupon = request.data.get("coupon", None)
+    products_ids = request.data.get("products", [])
+
+    if not Client.objects.filter(pk=client_id).exists():
+        return Response(
+            {
+                "valide": False,
+                "coupon": None,
+                "code": CLIENT_NOT_FOUND,
+                "code_text": "CLIENT_NOT_FOUND",
+                "products": [],
+            },
+            status=400
+        )
+
+    if not Store.objects.filter(pk=store_id).exists():
+        return Response(
+            {
+                "valide": False,
+                "coupon": None,
+                "code": STORE_NOT_FOUND,
+                "code_text": "STORE_NOT_FOUND",
+                "products": [],
+            },
+            status=400
+        )
+
+    coupon = Coupon.objects.filter(string=coupon, store_id=store_id).first()
+
+    if not coupon:
+
+        return Response(
+            {
+                "valide": False,
+                "coupon": None,
+                "code": COUPON_NOT_FOUND,
+                "code_text": "COUPON_NOT_FOUND",
+                "products": [],
+            },
+            status=400
+        )
+
+    if not coupon.is_active:
+        return Response(
+            {
+            "valide": False,
+            "coupon": None,
+            "code": COUPON_NOT_ACTIVE,
+            "code_text": "COUPON_NOT_ACTIVE",
+            "products": [],
+            },
+            status=400
+        )
+
+    coupon_client = CouponClient.objects.filter(client_id=client_id, coupon_id=coupon.id).first()
+
+    if coupon_client is not None and coupon_client.count >= coupon.max_nbr_uses:
+        return Response(
+            {
+                "valide": False,
+                "coupon": None,
+                "code": COUPON_USAGE_LIMIT,
+                "code_text": "COUPON_USAGE_LIMIT",
+                "products": [],
+            },
+            status=400
+        )
+
+    products = Product.objects.filter(id__in=products_ids)
+    products = list(filter(lambda p:coupon_on_product(coupon, p), products))
+    products = list(map(lambda p:p.id, products))
+
+    if products:
+        return Response(
+                {
+                    "valide": True,
+                    "coupon": coupon.to_dict(),
+                    "code": COUPON_FOUND,
+                    "code_text": "COUPON_FOUND",
+                    "products": products,
+                }
+            )
+    else: 
+        return Response(
+            {
+                "valide": False,
+                "coupon": None,
+                "code": COUPON_NO_PRODUCTS,
+                "code_text": "COUPON_NO_PRODUCTS",
+                "products": [],
+            },
+            status=400,
+        )
+    
+
+def coupon_on_product(coupon: Coupon, product: Product):
+
+    if coupon.coupon_type=="All":
+        return True
+    elif coupon.coupon_type=="Category" and coupon.target_id==product.category_id:
+        return True
+    elif coupon.coupon_type=="Product" and coupon.target_id==product.id:
+        return True
+    
+    return False
+
+# #####################
+
+################ Temporary
+
+import json
+
+def pop_tab(file_name: str):
+
+    with open(f"more data/old_data/{file_name}.json", mode="r", encoding="utf8") as file:
+        json_data = json.load(fp=file)
+        model = get_model(file_name)
+        if model is None:
+            print(f"{file_name} is None")
+            return
+        
+        for el in json_data:
+            model.create(**el)
+
+def get_model(name: str):
+
+    if name=="store": return Store
+    elif name=="client": return Client
+    elif name=="group": return Group
+    elif name=="groupclient": return GroupClient
+    elif name=="storefavclient": return StoreFavClient
+    elif name=="clientfavstore": return ClientFavStore
+
+    elif name=="product": return Product
+    elif name=="category": return Category
+    elif name=="packtype": return PackType
+    elif name=="clientproduct": return ClientProduct
+
+    elif name=="coupon": return Coupon
+    elif name=="couponclient": return CouponClient
+
+    elif name=="order": return Order
+    elif name=="orderstate": return OrderState
+    elif name=="ordercoupon": return OrderCoupon
+    elif name=="orderproduct": return OrderProduct
+
+    elif name=="advertisement": return Advertisement
+    elif name=="adimage": return AdImage
+
+    elif name=="storenotification": return StoreNotification
+    elif name=="clientnotification": return ClientNotification
+
+
+def read_json(file_name: str):
+
+    with open(f"{file_name}.json", mode="r", encoding="utf8") as file:
+        json_data = json.load(fp=file)
+    return json_data
+
+def write_json(json_data, file_name: str):
+
+    with open(f"{file_name}.json", mode="w", encoding="utf8") as file:
+        json.dump(json_data, fp=file, ensure_ascii=False, indent=2)
+

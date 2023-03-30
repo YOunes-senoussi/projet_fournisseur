@@ -1,6 +1,6 @@
 from django.db import models
 from django.core.exceptions import FieldError
-
+from django.contrib.auth.models import User
 from API.some_functions import *
 from itertools import chain
 
@@ -12,9 +12,9 @@ from projet_fournisseur.settings import (
 
 # choices
 coupon_types = (
-    ("Product", "Product"),
-    ("Category", "Category"),
-    ("All", "All"),
+    ("product", "product"),
+    ("category", "category"),
+    ("all", "all"),
 )
 
 order_states = (
@@ -68,6 +68,8 @@ class Store(models.Model):
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
 
+    account = models.OneToOneField(to=User, null=True, on_delete=models.SET_NULL, related_name="store")
+
     # many to many relationship
     fav_clients = models.ManyToManyField(to="Client", through="StoreFavClient")
 
@@ -109,6 +111,12 @@ class Store(models.Model):
             image.save(store.image_url)
 
         store.refresh_from_db()
+
+        # creating an account
+        store.account = User.objects.create_user(username=store.phone_number, password=store.password)
+        store.save()
+        store.refresh_from_db()
+        
         return store
     
     def update(self, *args, **kwargs):
@@ -132,11 +140,19 @@ class Store(models.Model):
 
             self.image_url = img_path
             self.save()
+            self.refresh_from_db()
 
         else:
             self.update_fields(*args, **kwargs)
 
+        # updating the account
+        self.account.username = self.phone_number
+        self.account.set_password(self.password)
+        self.account.save()
+
+        self.save()
         self.refresh_from_db()
+
         return self
 
     def update_fields(self, *args, **kwargs):
@@ -206,10 +222,12 @@ class Client(models.Model):
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
 
+    account = models.OneToOneField(to=User, null=True, on_delete=models.SET_NULL, related_name="client")
+
     # many to many relationship
     fav_stores = models.ManyToManyField(to="Store", through="ClientFavStore")
 
-    # reverse relationships: [couponclient*, order*, notification*, cart]
+    # reverse relationships: [couponclient*, order*, notification*]
 
     class Meta:
         constraints = [
@@ -248,11 +266,50 @@ class Client(models.Model):
             image.save(client.image_url)
 
         client.refresh_from_db()
-        Cart.create(client_id=client.id)
+
+        # creating an account
+        client.account = User.objects.create_user(username=client.phone_number, password=client.password)
+        client.save()
+        client.refresh_from_db()
         
         return client
 
     def update(self, *args, **kwargs):
+
+        if "image" in kwargs:
+            img = kwargs["image"]
+
+            if img=="default":
+                self.update_fields(*args, **kwargs)
+                delete_img(self.image_url)
+                img_path = f"{self.dir_path}/client_{self.id}"
+                img_path = copy_image(source_path=DEFAULT_CLIENT_IMG_PATH, destination_path=img_path)
+
+            else:
+                img = img.split(",")[-1]
+                image = decode_image(img)
+                self.update_fields(*args, **kwargs)
+                delete_img(self.image_url)
+                img_path = f"{self.dir_path}/client_{self.id}.{image.format}"
+                image.save(img_path)
+
+            self.image_url = img_path
+            self.save()
+            self.refresh_from_db()
+        else:
+            self.update_fields(*args, **kwargs)
+
+        # updating the account
+        self.account.username = self.phone_number
+        self.account.set_password(self.password)
+        self.account.save()
+
+        self.save()
+        self.refresh_from_db()
+
+        return self
+
+    def update_fields(self, *args, **kwargs):
 
         if "shop_name" in kwargs: self.shop_name = kwargs["shop_name"]
         if "full_name" in kwargs: self.full_name = kwargs["full_name"]
@@ -271,26 +328,7 @@ class Client(models.Model):
 
         self.save()
         self.refresh_from_db()
-        
-        if "image" in kwargs:
-            img = kwargs["image"]
 
-            if img=="default":
-                delete_img(self.image_url)
-                img_path = f"{self.dir_path}/client_{self.id}"
-                img_path = copy_image(source_path=DEFAULT_CLIENT_IMG_PATH, destination_path=img_path)
-
-            else:
-                img = img.split(",")[-1]
-                image = decode_image(img)
-                delete_img(self.image_url)
-                img_path = f"{self.dir_path}/client_{self.id}.{image.format}"
-                image.save(img_path)
-
-            self.image_url = img_path
-            self.save()
-
-        self.refresh_from_db()
         return self
 
     def to_dict(self):
@@ -591,6 +629,34 @@ class Product(models.Model):
         return product
         
     def update(self, *args, **kwargs):
+        
+        if "image" in kwargs:
+            img = kwargs["image"]
+
+            if img=="default":
+                self.update_fields(*args, **kwargs)
+                delete_img(self.image_url)
+                img_path = f"{self.dir_path}/product_{self.id}"
+                img_path = copy_image(source_path=DEFAULT_PRODUCT_IMG_PATH, destination_path=img_path)
+
+            else:
+                img = img.split(",")[-1]
+                image = decode_image(img)
+                self.update_fields(*args, **kwargs)
+                delete_img(self.image_url)
+                img_path = f"{self.dir_path}/product_{self.id}.{image.format}"
+                image.save(img_path)
+
+            self.image_url = img_path
+            self.save()
+            self.refresh_from_db()
+
+        else:
+            self.update_fields(*args, **kwargs)
+
+        return self
+
+    def update_fields(self, *args, **kwargs):
 
         if "name" in kwargs: self.name = kwargs["name"]
         if "brand" in kwargs: self.brand = kwargs["brand"]
@@ -607,28 +673,9 @@ class Product(models.Model):
 
         self.save()
         self.refresh_from_db()
-        
-        if "image" in kwargs:
-            img = kwargs["image"]
 
-            if img=="default":
-                delete_img(self.image_url)
-                img_path = f"{self.dir_path}/product_{self.id}"
-                img_path = copy_image(source_path=DEFAULT_PRODUCT_IMG_PATH, destination_path=img_path)
-
-            else:
-                img = img.split(",")[-1]
-                image = decode_image(img)
-                delete_img(self.image_url)
-                img_path = f"{self.dir_path}/product_{self.id}.{image.format}"
-                image.save(img_path)
-
-            self.image_url = img_path
-            self.save()
-
-        self.refresh_from_db()
         return self
-
+    
     def to_dict(self):
         return {
             "id": self.id,
@@ -693,15 +740,11 @@ class Category(models.Model):
     
     def update(self, *args, **kwargs):
 
-        if "name" in kwargs: self.name = kwargs["name"]
-
-        self.save()
-        self.refresh_from_db()
-        
         if "image" in kwargs:
             img = kwargs["image"]
 
             if img=="default":
+                self.update_fields(*args, **kwargs)
                 delete_img(self.image_url)
                 img_path = f"{self.dir_path}/category_{self.id}"
                 img_path = copy_image(source_path=DEFAULT_CATEGORY_IMG_PATH, destination_path=img_path)
@@ -709,16 +752,29 @@ class Category(models.Model):
             else:
                 img = img.split(",")[-1]
                 image = decode_image(img)
+                self.update_fields(*args, **kwargs)
                 delete_img(self.image_url)
                 img_path = f"{self.dir_path}/category_{self.id}.{image.format}"
                 image.save(img_path)
 
             self.image_url = img_path
             self.save()
+            self.refresh_from_db()
 
-        self.refresh_from_db()
+        else:
+            self.update_fields(*args, **kwargs)
+
         return self
 
+    def update_fields(self, *args, **kwargs):
+
+        if "name" in kwargs: self.name = kwargs["name"]
+
+        self.save()
+        self.refresh_from_db()
+
+        return self
+    
     def to_dict(self):
         return {
             "id": self.id,
@@ -775,7 +831,7 @@ class Coupon(models.Model):
         related_query_name="coupon",
     )
 
-    coupon_type = models.CharField(max_length=100, choices=coupon_types, default="All")
+    coupon_type = models.CharField(max_length=100, choices=coupon_types, default="all")
     target_id = models.IntegerField(null=True, blank=True, default=None)
 
     max_nbr_uses = models.IntegerField(default=1)
@@ -888,6 +944,7 @@ class CouponClient(models.Model):
 
 # ################## 
 class Order(models.Model):
+    
     store = models.ForeignKey(
         to="Store",
         on_delete=models.SET_NULL,
@@ -896,6 +953,7 @@ class Order(models.Model):
         related_name="orders",
         related_query_name="order",
     )
+
     client = models.ForeignKey(
         to="Client",
         on_delete=models.SET_NULL,
@@ -1156,64 +1214,22 @@ class OrderProduct(models.Model):
         
         return True
 
-
 # ################## 
-class Cart(models.Model):
+# Intermediary
+class ClientProduct(models.Model):
 
-    client = models.OneToOneField(
+    client = models.ForeignKey(
         to="Client",
         on_delete=models.CASCADE,
-        related_name="cart",
-        related_query_name="cart",
-    )
-
-    products = models.ManyToManyField(to="Product", through="CartProduct")
-
-    # reverse relationships: [cartproduct*]
-
-    class Meta:
-        constraints = []
-
-    @classmethod
-    def create(cls, *args, **kwargs):
-        
-        cart = cls(**kwargs)
-        cart.save()
-        cart.refresh_from_db()
-
-        return cart
-    
-    def update(self, *args, **kwargs):
-
-        if "client_id" in kwargs: self.client_id = kwargs["client_id"]
-
-        self.save()
-        self.refresh_from_db()
-        return self
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "client_id": self.client_id,
-            "products": list(chain(*self.products.values_list("id"))),
-        }
-
-
-# Intermediary
-class CartProduct(models.Model):
-
-    cart = models.ForeignKey(
-        to="Cart",
-        on_delete=models.CASCADE,
-        related_name="cartproducts",
-        related_query_name="cartproduct",
+        related_name="clientproducts",
+        related_query_name="clientproduct",
     )
 
     product = models.ForeignKey(
         to="Product",
         on_delete=models.CASCADE,
-        related_name="cartproducts",
-        related_query_name="cartproduct",
+        related_name="clientproducts",
+        related_query_name="clientproduct",
     )
 
     quantity = models.IntegerField(default=1)
@@ -1236,7 +1252,7 @@ class CartProduct(models.Model):
     
     def update(self, *args, **kwargs):
 
-        if "cart_id" in kwargs: self.cart_id = kwargs["cart_id"]
+        if "client_id" in kwargs: self.client_id = kwargs["client_id"]
         if "product_id" in kwargs: self.product_id = kwargs["product_id"]
         if "quantity" in kwargs: self.quantity = kwargs["quantity"]
 
@@ -1247,28 +1263,18 @@ class CartProduct(models.Model):
     def to_dict(self):
         return {
             "id": self.id,
-            "cart_id": self.cart_id,
+            "client_id": self.client_id,
             "product_id": self.product_id,
             "quantity": self.quantity,
         }
 
 
 # ################## 
-class Notification(models.Model):
-
-    # User who recieves the notification (Client, Store)
-    client = models.ForeignKey(
-        to="Client",
-        on_delete=models.CASCADE,
-        null=True,
-        related_name="notifications",
-        related_query_name="notification",
-    )
+class StoreNotification(models.Model):
 
     store = models.ForeignKey(
         to="Store",
         on_delete=models.CASCADE,
-        null=True,
         related_name="notifications",
         related_query_name="notification",
     )
@@ -1282,13 +1288,61 @@ class Notification(models.Model):
     # reverse relationships: []
     
     class Meta:
-        constraints = [
-            models.CheckConstraint(
-                check=Q(client_id__isnull=True) ^ Q(store_id__isnull=True), 
-                name='valide_notification', 
-                violation_error_message="both client and store are/aren't null"
-            ),
-        ]
+        constraints = []
+
+    def __str__(self) -> str:
+        return self.message
+
+    @classmethod
+    def create(cls, *args, **kwargs):
+        
+        notification = cls(**kwargs)
+        notification.save()
+        notification.refresh_from_db()
+
+        return notification
+    
+    def update(self, *args, **kwargs):
+
+        # if "store_id" in kwargs: self.store_id = kwargs["store_id"]
+        # if "action" in kwargs: self.action = kwargs["action"]
+        # if "message" in kwargs: self.message = kwargs["message"]
+        if "seen" in kwargs: self.seen = kwargs["seen"]
+
+        self.save()
+        self.refresh_from_db()
+        return self
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "store_id": self.store_id,
+            "action": self.action,
+            "message": self.message,
+            "seen": self.seen,
+            "created_at": self.created_at,
+        }
+
+
+class ClientNotification(models.Model):
+
+    client = models.ForeignKey(
+        to="Client",
+        on_delete=models.CASCADE,
+        related_name="notifications",
+        related_query_name="notification",
+    )
+
+    action = models.CharField(max_length=100, choices=actions, default="Created")
+    message = models.TextField(default="")
+
+    seen = models.BooleanField(default=False)
+    created_at = models.IntegerField(default=get_now_stamp)
+
+    # reverse relationships: []
+    
+    class Meta:
+        constraints = []
 
     def __str__(self) -> str:
         return self.message
@@ -1305,7 +1359,6 @@ class Notification(models.Model):
     def update(self, *args, **kwargs):
 
         # if "client_id" in kwargs: self.client_id = kwargs["client_id"]
-        # if "store_id" in kwargs: self.store_id = kwargs["store_id"]
         # if "action" in kwargs: self.action = kwargs["action"]
         # if "message" in kwargs: self.message = kwargs["message"]
         if "seen" in kwargs: self.seen = kwargs["seen"]
@@ -1318,13 +1371,11 @@ class Notification(models.Model):
         return {
             "id": self.id,
             "client_id": self.client_id,
-            "store_id": self.store_id,
             "action": self.action,
             "message": self.message,
             "seen": self.seen,
             "created_at": self.created_at,
         }
-
 
 # ################## 
 class Advertisement(models.Model):
@@ -1466,4 +1517,7 @@ class AdImage(models.Model):
             "ad_id": self.ad_id,
             "url": self.url,
         }
+
+# ################## 
+
 

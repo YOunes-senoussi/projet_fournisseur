@@ -1,0 +1,60 @@
+
+1) Using a Proxy class for the "User" class:
+
+  for:
+    - modifying the behaviour of the "User" class (CRUD operation).
+  not for:
+    - storing extra infos about the user.
+    - modifying authentication process.
+
+
+2) Using One-To-One Link With a User Model (Profile)
+
+  for:
+    - storing extra infos about the user ("User" doesn't change).
+  not for:
+    - modifying the behaviour of the "User" class (CRUD operation).
+    - modifying authentication process.
+
+
+3) Creating a Custom User Model Extending "AbstractBaseUser"
+
+  for:
+    - modifying authentication process.
+    - storing extra infos about the user.
+  not for:
+    - modifying the behaviour of the "User" class (CRUD operation).
+
+
+4) Creating a Custom User Model Extending "AbstractUser"
+
+  for:
+    - storing extra infos about the user (changes "User").
+    - modifying the behaviour of the "User" class (CRUD operation).
+  not for:
+    - modifying authentication process.
+
+
+3 and 4 :
+  - you need to update some references through the settings.py.
+  - it should be done in the begining of the project.
+
+
+///////////////////////////////////////
+
+post create "Store":
+  -set "default_img" or "decoded_img"
+  -create an account using phone_number and password
+
+post create "account":
+  -create a token
+
+post update "Store":
+  -set "default_img" or "decoded_img" or leave image as it is
+  -update phone_number and password of the account
+
+post delete "Store":
+  -delete the account
+  -delete the directory of dir_path (where the image is stored)
+
+

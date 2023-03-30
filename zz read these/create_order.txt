@@ -1,0 +1,51 @@
+
+to create an order:
+
+	POST "create_order/"
+
+	{
+		"store_id" : 22,
+		"client_id" : 11,
+		"products" : [
+			{product_id: 3, "quantity":4},
+			{product_id: 2, "quantity":1}
+		],
+		"coupons" : [1, 4]
+	}
+
+notes:
+	- it's: "store_id", not: ("storeId" or "idStore" or "id_store")
+
+	- to update an order state, send a "POST" request to "update_order_state/<int:order_id>/"
+		with json body like this:
+			{
+				"state": "submitted"
+				"description": "i need this order ASAP!!"
+				"updated_by_store": false
+			}
+		or:
+			{
+				"state": "refused"
+				"description": "this order is too looooong"
+				"updated_by_store": true
+			}
+		what happens is a new OrderState will be created with these fields, 
+		and it will be marked as the current_state in the order.
+
+		"updated_by_store" is used to determin who updated the state of this order (the store or the client)
+		this is important because right after we create a new OrderState and mark it as the current_state
+		we create a notification and: 
+			if updated_by_store==true:
+				sends notification to the client
+			else:
+				sends notification to the store
+
+		- don't use "create_orderstate" because:
+			- the new state won't be marked as the current state of the order
+			- no notification will be created or sent to the other person
+
+    - to update the description of the state of the order:
+			use "update_orderstate" and not "update_order_state/<int:order_id>/",
+			because "update_order_state" always creates a new state and doesn't modify old ones
+
+

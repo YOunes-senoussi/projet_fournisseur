@@ -2,51 +2,61 @@
   {
     "id": 1,
     "name": "category_1",
-    "image_url": ""
+    "image_url": "static/categories/category_1/category_1.jpg",
+    "dir_path": "static/categories/category_1"
   },
   {
     "id": 2,
     "name": "category_2",
-    "image_url": ""
+    "image_url": "static/categories/category_2/category_2.jpg",
+    "dir_path": "static/categories/category_2"
   },
   {
     "id": 3,
     "name": "category_3",
-    "image_url": ""
+    "image_url": "static/categories/category_3/category_3.jpg",
+    "dir_path": "static/categories/category_3"
   },
   {
     "id": 4,
     "name": "category_4",
-    "image_url": ""
+    "image_url": "static/categories/category_4/category_4.jpg",
+    "dir_path": "static/categories/category_4"
   },
   {
     "id": 5,
     "name": "category_5",
-    "image_url": ""
+    "image_url": "static/categories/category_5/category_5.jpg",
+    "dir_path": "static/categories/category_5"
   },
   {
     "id": 6,
     "name": "category_6",
-    "image_url": ""
+    "image_url": "static/categories/category_6/category_6.jpg",
+    "dir_path": "static/categories/category_6"
   },
   {
     "id": 7,
     "name": "category_7",
-    "image_url": ""
+    "image_url": "static/categories/category_7/category_7.jpg",
+    "dir_path": "static/categories/category_7"
   },
   {
     "id": 8,
     "name": "category_8",
-    "image_url": ""
+    "image_url": "static/categories/category_8/category_8.jpg",
+    "dir_path": "static/categories/category_8"
   },
   {
     "id": 9,
     "name": "category_9",
-    "image_url": ""
+    "image_url": "static/categories/category_9/category_9.jpg",
+    "dir_path": "static/categories/category_9"
   },
   {
     "id": 10,
     "name": "category_10",
-    "image_url": ""
+    "image_url": "static/categories/category_10/category_10.jpg",
+    "dir_path": "static/categories/category_10"
   }
 ]

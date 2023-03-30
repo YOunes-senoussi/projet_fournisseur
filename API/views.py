@@ -1,12 +1,61 @@
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.views import APIView
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
+
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
+from django.contrib.auth import authenticate
 
 from API.models import *
-from API.more_functions import extract_params, RequestHandler, simple_Q
+from API.more_functions import extract_params, RequestHandler, simple_Q, pop_tab
 
-# ##################### Generic Views
+
+# ################ Models
+tables = {
+    "store": Store,
+    "client": Client,
+    "group": Group,
+    "groupclient": GroupClient,
+    "storefavclient": StoreFavClient,
+    "clientfavstore": ClientFavStore,
+
+    "product": Product,
+    "category": Category,
+    "packtype": PackType,
+    "clientproduct": ClientProduct,
+    
+    "coupon": Coupon,
+    "couponclient": CouponClient,
+    
+    "order": Order,
+    "orderstate": OrderState,
+    "ordercoupon": OrderCoupon,
+    "orderproduct": OrderProduct,
+
+    "storenotification": StoreNotification,
+    "clientnotification": ClientNotification,
+    
+    "ad": Advertisement,
+    "advertisement": Advertisement,
+    "adimage": AdImage,
+}
+
+
+# ################ Test
+@api_view(["GET", "POST", "PUT", "DELETE"])
+def test_view(request: Request):
+
+    try:
+        return Response("nothing")
+    
+    except Exception as e:
+        return Response(data={"error": e.__class__.__name__, "args": e.args}, status=400)
+
+# ##################### Generic retrieve using GET or POST
 class GetView(APIView):
 
     def get(self, request: Request, model_name: str, item_id: int = None):
@@ -57,8 +106,9 @@ class GetView(APIView):
     def delete(self, request: Request, model_name: str, item_id: int = None):
         return Response("nothing")
 
-# ################ Generic retrieve using POST
-@api_view(["POST"])
+
+# ################ Generic Views
+@api_view(["POST"]) # not using this for now
 def get_items(request: Request, model_name: str, item_id: int = None):
 
     model = tables.get(model_name)
@@ -110,7 +160,7 @@ def update_item(request: Request, model_name: str, item_id: int):
     
     except Exception as e:
         return Response(data={"error": e.__class__.__name__, "args": e.args}, status=400)
-    
+
 
 @api_view(["DELETE"])
 def delete_item(request: Request, model_name: str, item_id: int):
@@ -124,7 +174,8 @@ def delete_item(request: Request, model_name: str, item_id: int):
     
     except Exception as e:
         return Response(data={"error": e.__class__.__name__, "args": e.args}, status=400)
-    
+
+
 # Many To Many Relationships:
 # ##################### Client Fav Stores Views
 class ClientFavStoresView(APIView):
@@ -250,22 +301,22 @@ class GroupClientsView(APIView):
         return Response("nothing")
 
 # ##################### Cart Products Views
-class CartProductsView(APIView):
+class ClientProductsView(APIView):
 
-    def get(self, request: Request, cart_id: int):
+    def get(self, request: Request, client_id: int):
 
         try:
-            return Response(Cart.objects.get(pk=cart_id).cartproducts.values())
+            return Response(Client.objects.get(pk=client_id).clientproducts.values())
         except Exception as e:
             return Response(data={"error": e.__class__.__name__, "args": e.args}, status=400)
 
-    def post(self, request: Request, cart_id: int = None):
+    def post(self, request: Request, client_id: int = None):
         return Response("nothing")
 
-    def put(self, request: Request, cart_id: int = None):
+    def put(self, request: Request, client_id: int = None):
         return Response("nothing")
 
-    def delete(self, request: Request, cart_id: int = None):
+    def delete(self, request: Request, client_id: int = None):
         return Response("nothing")
 
 # ##################### Order Products Views
@@ -328,51 +379,95 @@ class CouponClientsView(APIView):
     def delete(self, request: Request, coupon_id: int, client_id: int = None):
         return Response("nothing")
 
-# ################ Models
-tables = {
-    "store": Store,
-    "client": Client,
-    "group": Group,
-    "product": Product,
-    "category": Category,
-    "packtype": PackType,
-    "coupon": Coupon,
-    "order": Order,
-    "orderstate": OrderState,
-    "cart": Cart,
-    "notification": Notification,
-    "ad": Advertisement,
-    "adimage": AdImage,
 
-    "cartproduct": CartProduct,
-    "ordercoupon": OrderCoupon,
-    "orderproduct": OrderProduct,
-    "groupclient": GroupClient,
-    "storefavclient": StoreFavClient,
-    "clientfavstore": ClientFavStore,
-    "couponclient": CouponClient,
-}
+# ##################### Log In Views
 
-# ################ Test
-@api_view(["GET", "POST", "PUT", "DELETE"])
-def test_view(request: Request):
+@api_view(["POST", "PUT"])
+def client_log_in(request: Request):
 
-    try:
-        return Response("nothing")
-    
-    except Exception as e:
-        return Response(data={"error": e.__class__.__name__, "args": e.args}, status=400)
+    phone_number = request.data.get("phone_number")
+    password = request.data.get("password")
+
+    user = authenticate(username=phone_number, password=password)
+    client = Client.objects.filter(account=user).first()
+
+    if user is None or client is None:
+        return Response({"client_id": None, "token": None}, status=400)
+
+    return Response({"client_id": client.id, "token": user.auth_token.key})
+
+
+@api_view(["POST", "PUT"])
+def store_log_in(request: Request):
+
+    phone_number = request.data.get("phone_number")
+    password = request.data.get("password")
+
+    user = authenticate(username=phone_number, password=password)
+    store = Store.objects.filter(account=user).first()
+
+    if user is None or store is None:
+        return Response({"store_id": None, "token": None}, status=400)
+
+    return Response({"store_id": store.id, "token": user.auth_token.key})
+
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def secure_view(request, format=None):
+
+    content = {'auth': str(request.auth)}
+
+    if hasattr(request.user, "client"):
+        content["client_id"] = request.user.client.id
+
+    if hasattr(request.user, "store"):
+        content["store_id"] = request.user.store.id
+
+    return Response(content)
+
+
+@api_view(['GET'])
+def get_all_client_credentials(request: Request):
+
+    return Response(
+        {"clients": Client.objects.all().values("id", "phone_number", "password", "account__auth_token")}
+    )
+
+@api_view(['GET'])
+def get_all_store_credentials(request: Request):
+
+    return Response(
+        {"stores": Store.objects.all().values("id", "phone_number", "password", "account__auth_token")}
+    )
 
 # ################ 
 
-# Delete: 
-#   instance: method + signals
-#   in bulk : signals
-#   CASCADE : signals
-# 
-# Save (create or update): 
-#   instance: method + signals
-#   in bulk : nothing
-# 
-# 
-# 
+files_names = [
+    "store", 
+    "client", 
+    "group", 
+
+    "groupclient", 
+    "clientfavstore", 
+    "storefavclient",
+
+    "category", 
+    "packtype",
+    "product",
+
+    "coupon",
+    "couponclient",
+
+    "order",
+    "orderstate",
+    "ordercoupon",
+    "orderproduct",
+
+    "storenotification",
+
+    "clientproduct",
+]
+
+

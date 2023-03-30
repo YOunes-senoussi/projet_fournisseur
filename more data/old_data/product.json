@@ -12,7 +12,8 @@
     "created_at": 1676069775,
     "category_id": 3,
     "pack_type_id": 4,
-    "store_id": 1
+    "store_id": 1,
+    "dir_path": "static/products/product_1"
   },
   {
     "id": 2,
@@ -27,7 +28,8 @@
     "created_at": 1676069775,
     "category_id": 5,
     "pack_type_id": 1,
-    "store_id": 1
+    "store_id": 1,
+    "dir_path": "static/products/product_2"
   },
   {
     "id": 3,
@@ -42,7 +44,8 @@
     "created_at": 1676069775,
     "category_id": 1,
     "pack_type_id": 4,
-    "store_id": 1
+    "store_id": 1,
+    "dir_path": "static/products/product_3"
   },
   {
     "id": 4,
@@ -57,7 +60,8 @@
     "created_at": 1676069775,
     "category_id": 1,
     "pack_type_id": 4,
-    "store_id": 1
+    "store_id": 1,
+    "dir_path": "static/products/product_4"
   },
   {
     "id": 5,
@@ -72,7 +76,8 @@
     "created_at": 1676069775,
     "category_id": 9,
     "pack_type_id": 8,
-    "store_id": 1
+    "store_id": 1,
+    "dir_path": "static/products/product_5"
   },
   {
     "id": 6,
@@ -87,7 +92,8 @@
     "created_at": 1676069775,
     "category_id": 10,
     "pack_type_id": 1,
-    "store_id": 2
+    "store_id": 2,
+    "dir_path": "static/products/product_6"
   },
   {
     "id": 7,
@@ -102,7 +108,8 @@
     "created_at": 1676069775,
     "category_id": 9,
     "pack_type_id": 6,
-    "store_id": 2
+    "store_id": 2,
+    "dir_path": "static/products/product_7"
   },
   {
     "id": 8,
@@ -117,7 +124,8 @@
     "created_at": 1676069775,
     "category_id": 10,
     "pack_type_id": 7,
-    "store_id": 2
+    "store_id": 2,
+    "dir_path": "static/products/product_8"
   },
   {
     "id": 9,
@@ -132,7 +140,8 @@
     "created_at": 1676069775,
     "category_id": 8,
     "pack_type_id": 3,
-    "store_id": 2
+    "store_id": 2,
+    "dir_path": "static/products/product_9"
   },
   {
     "id": 10,
@@ -147,7 +156,8 @@
     "created_at": 1676069775,
     "category_id": 7,
     "pack_type_id": 8,
-    "store_id": 2
+    "store_id": 2,
+    "dir_path": "static/products/product_10"
   },
   {
     "id": 11,
@@ -162,7 +172,8 @@
     "created_at": 1676069775,
     "category_id": 8,
     "pack_type_id": 9,
-    "store_id": 3
+    "store_id": 3,
+    "dir_path": "static/products/product_11"
   },
   {
     "id": 12,
@@ -177,7 +188,8 @@
     "created_at": 1676069775,
     "category_id": 4,
     "pack_type_id": 10,
-    "store_id": 3
+    "store_id": 3,
+    "dir_path": "static/products/product_12"
   },
   {
     "id": 13,
@@ -192,7 +204,8 @@
     "created_at": 1676069775,
     "category_id": 9,
     "pack_type_id": 5,
-    "store_id": 3
+    "store_id": 3,
+    "dir_path": "static/products/product_13"
   },
   {
     "id": 14,
@@ -207,7 +220,8 @@
     "created_at": 1676069775,
     "category_id": 1,
     "pack_type_id": 8,
-    "store_id": 3
+    "store_id": 3,
+    "dir_path": "static/products/product_14"
   },
   {
     "id": 15,
@@ -222,7 +236,8 @@
     "created_at": 1676069775,
     "category_id": 10,
     "pack_type_id": 2,
-    "store_id": 3
+    "store_id": 3,
+    "dir_path": "static/products/product_15"
   },
   {
     "id": 16,
@@ -237,7 +252,8 @@
     "created_at": 1676069775,
     "category_id": 4,
     "pack_type_id": 9,
-    "store_id": 4
+    "store_id": 4,
+    "dir_path": "static/products/product_16"
   },
   {
     "id": 17,
@@ -252,7 +268,8 @@
     "created_at": 1676069775,
     "category_id": 2,
     "pack_type_id": 10,
-    "store_id": 4
+    "store_id": 4,
+    "dir_path": "static/products/product_17"
   },
   {
     "id": 18,
@@ -267,7 +284,8 @@
     "created_at": 1676069775,
     "category_id": 9,
     "pack_type_id": 1,
-    "store_id": 4
+    "store_id": 4,
+    "dir_path": "static/products/product_18"
   },
   {
     "id": 19,
@@ -282,7 +300,8 @@
     "created_at": 1676069775,
     "category_id": 2,
     "pack_type_id": 7,
-    "store_id": 4
+    "store_id": 4,
+    "dir_path": "static/products/product_19"
   },
   {
     "id": 20,
@@ -297,7 +316,8 @@
     "created_at": 1676069775,
     "category_id": 3,
     "pack_type_id": 4,
-    "store_id": 4
+    "store_id": 4,
+    "dir_path": "static/products/product_20"
   },
   {
     "id": 21,
@@ -312,7 +332,8 @@
     "created_at": 1676069775,
     "category_id": 10,
     "pack_type_id": 7,
-    "store_id": 5
+    "store_id": 5,
+    "dir_path": "static/products/product_21"
   },
   {
     "id": 22,
@@ -327,7 +348,8 @@
     "created_at": 1676069775,
     "category_id": 3,
     "pack_type_id": 8,
-    "store_id": 5
+    "store_id": 5,
+    "dir_path": "static/products/product_22"
   },
   {
     "id": 23,
@@ -342,7 +364,8 @@
     "created_at": 1676069775,
     "category_id": 8,
     "pack_type_id": 2,
-    "store_id": 5
+    "store_id": 5,
+    "dir_path": "static/products/product_23"
   },
   {
     "id": 24,
@@ -357,7 +380,8 @@
     "created_at": 1676069775,
     "category_id": 10,
     "pack_type_id": 3,
-    "store_id": 5
+    "store_id": 5,
+    "dir_path": "static/products/product_24"
   },
   {
     "id": 25,
@@ -372,7 +396,8 @@
     "created_at": 1676069775,
     "category_id": 10,
     "pack_type_id": 8,
-    "store_id": 5
+    "store_id": 5,
+    "dir_path": "static/products/product_25"
   },
   {
     "id": 26,
@@ -387,7 +412,8 @@
     "created_at": 1676069775,
     "category_id": 2,
     "pack_type_id": 1,
-    "store_id": 6
+    "store_id": 6,
+    "dir_path": "static/products/product_26"
   },
   {
     "id": 27,
@@ -402,7 +428,8 @@
     "created_at": 1676069775,
     "category_id": 10,
     "pack_type_id": 2,
-    "store_id": 6
+    "store_id": 6,
+    "dir_path": "static/products/product_27"
   },
   {
     "id": 28,
@@ -417,7 +444,8 @@
     "created_at": 1676069775,
     "category_id": 10,
     "pack_type_id": 1,
-    "store_id": 6
+    "store_id": 6,
+    "dir_path": "static/products/product_28"
   },
   {
     "id": 29,
@@ -432,7 +460,8 @@
     "created_at": 1676069775,
     "category_id": 9,
     "pack_type_id": 3,
-    "store_id": 6
+    "store_id": 6,
+    "dir_path": "static/products/product_29"
   },
   {
     "id": 30,
@@ -447,7 +476,8 @@
     "created_at": 1676069775,
     "category_id": 2,
     "pack_type_id": 2,
-    "store_id": 6
+    "store_id": 6,
+    "dir_path": "static/products/product_30"
   },
   {
     "id": 31,
@@ -462,7 +492,8 @@
     "created_at": 1676069775,
     "category_id": 2,
     "pack_type_id": 1,
-    "store_id": 7
+    "store_id": 7,
+    "dir_path": "static/products/product_31"
   },
   {
     "id": 32,
@@ -477,7 +508,8 @@
     "created_at": 1676069775,
     "category_id": 3,
     "pack_type_id": 6,
-    "store_id": 7
+    "store_id": 7,
+    "dir_path": "static/products/product_32"
   },
   {
     "id": 33,
@@ -492,7 +524,8 @@
     "created_at": 1676069775,
     "category_id": 8,
     "pack_type_id": 4,
-    "store_id": 7
+    "store_id": 7,
+    "dir_path": "static/products/product_33"
   },
   {
     "id": 34,
@@ -507,7 +540,8 @@
     "created_at": 1676069775,
     "category_id": 10,
     "pack_type_id": 6,
-    "store_id": 7
+    "store_id": 7,
+    "dir_path": "static/products/product_34"
   },
   {
     "id": 35,
@@ -522,7 +556,8 @@
     "created_at": 1676069775,
     "category_id": 10,
     "pack_type_id": 6,
-    "store_id": 7
+    "store_id": 7,
+    "dir_path": "static/products/product_35"
   },
   {
     "id": 36,
@@ -537,7 +572,8 @@
     "created_at": 1676069775,
     "category_id": 6,
     "pack_type_id": 3,
-    "store_id": 8
+    "store_id": 8,
+    "dir_path": "static/products/product_36"
   },
   {
     "id": 37,
@@ -552,7 +588,8 @@
     "created_at": 1676069775,
     "category_id": 5,
     "pack_type_id": 7,
-    "store_id": 8
+    "store_id": 8,
+    "dir_path": "static/products/product_37"
   },
   {
     "id": 38,
@@ -567,7 +604,8 @@
     "created_at": 1676069775,
     "category_id": 1,
     "pack_type_id": 7,
-    "store_id": 8
+    "store_id": 8,
+    "dir_path": "static/products/product_38"
   },
   {
     "id": 39,
@@ -582,7 +620,8 @@
     "created_at": 1676069775,
     "category_id": 7,
     "pack_type_id": 7,
-    "store_id": 8
+    "store_id": 8,
+    "dir_path": "static/products/product_39"
   },
   {
     "id": 40,
@@ -597,7 +636,8 @@
     "created_at": 1676069775,
     "category_id": 5,
     "pack_type_id": 5,
-    "store_id": 8
+    "store_id": 8,
+    "dir_path": "static/products/product_40"
   },
   {
     "id": 41,
@@ -612,7 +652,8 @@
     "created_at": 1676069775,
     "category_id": 1,
     "pack_type_id": 8,
-    "store_id": 9
+    "store_id": 9,
+    "dir_path": "static/products/product_41"
   },
   {
     "id": 42,
@@ -627,7 +668,8 @@
     "created_at": 1676069775,
     "category_id": 7,
     "pack_type_id": 2,
-    "store_id": 9
+    "store_id": 9,
+    "dir_path": "static/products/product_42"
   },
   {
     "id": 43,
@@ -642,7 +684,8 @@
     "created_at": 1676069776,
     "category_id": 8,
     "pack_type_id": 1,
-    "store_id": 9
+    "store_id": 9,
+    "dir_path": "static/products/product_43"
   },
   {
     "id": 44,
@@ -657,7 +700,8 @@
     "created_at": 1676069776,
     "category_id": 9,
     "pack_type_id": 10,
-    "store_id": 9
+    "store_id": 9,
+    "dir_path": "static/products/product_44"
   },
   {
     "id": 45,
@@ -672,7 +716,8 @@
     "created_at": 1676069776,
     "category_id": 3,
     "pack_type_id": 8,
-    "store_id": 9
+    "store_id": 9,
+    "dir_path": "static/products/product_45"
   },
   {
     "id": 46,
@@ -687,7 +732,8 @@
     "created_at": 1676069776,
     "category_id": 4,
     "pack_type_id": 4,
-    "store_id": 10
+    "store_id": 10,
+    "dir_path": "static/products/product_46"
   },
   {
     "id": 47,
@@ -702,7 +748,8 @@
     "created_at": 1676069776,
     "category_id": 7,
     "pack_type_id": 6,
-    "store_id": 10
+    "store_id": 10,
+    "dir_path": "static/products/product_47"
   },
   {
     "id": 48,
@@ -717,7 +764,8 @@
     "created_at": 1676069776,
     "category_id": 3,
     "pack_type_id": 3,
-    "store_id": 10
+    "store_id": 10,
+    "dir_path": "static/products/product_48"
   },
   {
     "id": 49,
@@ -732,7 +780,8 @@
     "created_at": 1676069776,
     "category_id": 10,
     "pack_type_id": 7,
-    "store_id": 10
+    "store_id": 10,
+    "dir_path": "static/products/product_49"
   },
   {
     "id": 50,
@@ -747,7 +796,8 @@
     "created_at": 1676069776,
     "category_id": 5,
     "pack_type_id": 7,
-    "store_id": 10
+    "store_id": 10,
+    "dir_path": "static/products/product_50"
   },
   {
     "id": 51,
@@ -762,7 +812,8 @@
     "created_at": 1676069776,
     "category_id": 9,
     "pack_type_id": 6,
-    "store_id": 11
+    "store_id": 11,
+    "dir_path": "static/products/product_51"
   },
   {
     "id": 52,
@@ -777,7 +828,8 @@
     "created_at": 1676069776,
     "category_id": 2,
     "pack_type_id": 4,
-    "store_id": 11
+    "store_id": 11,
+    "dir_path": "static/products/product_52"
   },
   {
     "id": 53,
@@ -792,7 +844,8 @@
     "created_at": 1676069776,
     "category_id": 1,
     "pack_type_id": 5,
-    "store_id": 11
+    "store_id": 11,
+    "dir_path": "static/products/product_53"
   },
   {
     "id": 54,
@@ -807,7 +860,8 @@
     "created_at": 1676069776,
     "category_id": 6,
     "pack_type_id": 9,
-    "store_id": 11
+    "store_id": 11,
+    "dir_path": "static/products/product_54"
   },
   {
     "id": 55,
@@ -822,7 +876,8 @@
     "created_at": 1676069776,
     "category_id": 8,
     "pack_type_id": 3,
-    "store_id": 11
+    "store_id": 11,
+    "dir_path": "static/products/product_55"
   },
   {
     "id": 56,
@@ -837,7 +892,8 @@
     "created_at": 1676069776,
     "category_id": 5,
     "pack_type_id": 8,
-    "store_id": 12
+    "store_id": 12,
+    "dir_path": "static/products/product_56"
   },
   {
     "id": 57,
@@ -852,7 +908,8 @@
     "created_at": 1676069776,
     "category_id": 10,
     "pack_type_id": 4,
-    "store_id": 12
+    "store_id": 12,
+    "dir_path": "static/products/product_57"
   },
   {
     "id": 58,
@@ -867,7 +924,8 @@
     "created_at": 1676069776,
     "category_id": 5,
     "pack_type_id": 2,
-    "store_id": 12
+    "store_id": 12,
+    "dir_path": "static/products/product_58"
   },
   {
     "id": 59,
@@ -882,7 +940,8 @@
     "created_at": 1676069776,
     "category_id": 9,
     "pack_type_id": 6,
-    "store_id": 12
+    "store_id": 12,
+    "dir_path": "static/products/product_59"
   },
   {
     "id": 60,
@@ -897,7 +956,8 @@
     "created_at": 1676069776,
     "category_id": 9,
     "pack_type_id": 10,
-    "store_id": 12
+    "store_id": 12,
+    "dir_path": "static/products/product_60"
   },
   {
     "id": 61,
@@ -912,7 +972,8 @@
     "created_at": 1676069776,
     "category_id": 1,
     "pack_type_id": 9,
-    "store_id": 13
+    "store_id": 13,
+    "dir_path": "static/products/product_61"
   },
   {
     "id": 62,
@@ -927,7 +988,8 @@
     "created_at": 1676069776,
     "category_id": 3,
     "pack_type_id": 8,
-    "store_id": 13
+    "store_id": 13,
+    "dir_path": "static/products/product_62"
   },
   {
     "id": 63,
@@ -942,7 +1004,8 @@
     "created_at": 1676069776,
     "category_id": 6,
     "pack_type_id": 8,
-    "store_id": 13
+    "store_id": 13,
+    "dir_path": "static/products/product_63"
   },
   {
     "id": 64,
@@ -957,7 +1020,8 @@
     "created_at": 1676069776,
     "category_id": 1,
     "pack_type_id": 10,
-    "store_id": 13
+    "store_id": 13,
+    "dir_path": "static/products/product_64"
   },
   {
     "id": 65,
@@ -972,7 +1036,8 @@
     "created_at": 1676069776,
     "category_id": 4,
     "pack_type_id": 3,
-    "store_id": 13
+    "store_id": 13,
+    "dir_path": "static/products/product_65"
   },
   {
     "id": 66,
@@ -987,7 +1052,8 @@
     "created_at": 1676069776,
     "category_id": 6,
     "pack_type_id": 4,
-    "store_id": 14
+    "store_id": 14,
+    "dir_path": "static/products/product_66"
   },
   {
     "id": 67,
@@ -1002,7 +1068,8 @@
     "created_at": 1676069776,
     "category_id": 2,
     "pack_type_id": 6,
-    "store_id": 14
+    "store_id": 14,
+    "dir_path": "static/products/product_67"
   },
   {
     "id": 68,
@@ -1017,7 +1084,8 @@
     "created_at": 1676069776,
     "category_id": 8,
     "pack_type_id": 8,
-    "store_id": 14
+    "store_id": 14,
+    "dir_path": "static/products/product_68"
   },
   {
     "id": 69,
@@ -1032,7 +1100,8 @@
     "created_at": 1676069776,
     "category_id": 3,
     "pack_type_id": 6,
-    "store_id": 14
+    "store_id": 14,
+    "dir_path": "static/products/product_69"
   },
   {
     "id": 70,
@@ -1047,7 +1116,8 @@
     "created_at": 1676069776,
     "category_id": 9,
     "pack_type_id": 10,
-    "store_id": 14
+    "store_id": 14,
+    "dir_path": "static/products/product_70"
   },
   {
     "id": 71,
@@ -1062,7 +1132,8 @@
     "created_at": 1676069776,
     "category_id": 3,
     "pack_type_id": 1,
-    "store_id": 15
+    "store_id": 15,
+    "dir_path": "static/products/product_71"
   },
   {
     "id": 72,
@@ -1077,7 +1148,8 @@
     "created_at": 1676069776,
     "category_id": 10,
     "pack_type_id": 2,
-    "store_id": 15
+    "store_id": 15,
+    "dir_path": "static/products/product_72"
   },
   {
     "id": 73,
@@ -1092,7 +1164,8 @@
     "created_at": 1676069776,
     "category_id": 3,
     "pack_type_id": 6,
-    "store_id": 15
+    "store_id": 15,
+    "dir_path": "static/products/product_73"
   },
   {
     "id": 74,
@@ -1107,7 +1180,8 @@
     "created_at": 1676069776,
     "category_id": 7,
     "pack_type_id": 3,
-    "store_id": 15
+    "store_id": 15,
+    "dir_path": "static/products/product_74"
   },
   {
     "id": 75,
@@ -1122,7 +1196,8 @@
     "created_at": 1676069776,
     "category_id": 5,
     "pack_type_id": 5,
-    "store_id": 15
+    "store_id": 15,
+    "dir_path": "static/products/product_75"
   },
   {
     "id": 76,
@@ -1137,7 +1212,8 @@
     "created_at": 1676069776,
     "category_id": 6,
     "pack_type_id": 8,
-    "store_id": 16
+    "store_id": 16,
+    "dir_path": "static/products/product_76"
   },
   {
     "id": 77,
@@ -1152,7 +1228,8 @@
     "created_at": 1676069776,
     "category_id": 9,
     "pack_type_id": 9,
-    "store_id": 16
+    "store_id": 16,
+    "dir_path": "static/products/product_77"
   },
   {
     "id": 78,
@@ -1167,7 +1244,8 @@
     "created_at": 1676069776,
     "category_id": 1,
     "pack_type_id": 10,
-    "store_id": 16
+    "store_id": 16,
+    "dir_path": "static/products/product_78"
   },
   {
     "id": 79,
@@ -1182,7 +1260,8 @@
     "created_at": 1676069776,
     "category_id": 4,
     "pack_type_id": 3,
-    "store_id": 16
+    "store_id": 16,
+    "dir_path": "static/products/product_79"
   },
   {
     "id": 80,
@@ -1197,7 +1276,8 @@
     "created_at": 1676069776,
     "category_id": 10,
     "pack_type_id": 2,
-    "store_id": 16
+    "store_id": 16,
+    "dir_path": "static/products/product_80"
   },
   {
     "id": 81,
@@ -1212,7 +1292,8 @@
     "created_at": 1676069776,
     "category_id": 5,
     "pack_type_id": 1,
-    "store_id": 17
+    "store_id": 17,
+    "dir_path": "static/products/product_81"
   },
   {
     "id": 82,
@@ -1227,7 +1308,8 @@
     "created_at": 1676069776,
     "category_id": 6,
     "pack_type_id": 3,
-    "store_id": 17
+    "store_id": 17,
+    "dir_path": "static/products/product_82"
   },
   {
     "id": 83,
@@ -1242,7 +1324,8 @@
     "created_at": 1676069776,
     "category_id": 10,
     "pack_type_id": 10,
-    "store_id": 17
+    "store_id": 17,
+    "dir_path": "static/products/product_83"
   },
   {
     "id": 84,
@@ -1257,7 +1340,8 @@
     "created_at": 1676069776,
     "category_id": 4,
     "pack_type_id": 10,
-    "store_id": 17
+    "store_id": 17,
+    "dir_path": "static/products/product_84"
   },
   {
     "id": 85,
@@ -1272,7 +1356,8 @@
     "created_at": 1676069776,
     "category_id": 5,
     "pack_type_id": 4,
-    "store_id": 17
+    "store_id": 17,
+    "dir_path": "static/products/product_85"
   },
   {
     "id": 86,
@@ -1287,7 +1372,8 @@
     "created_at": 1676069776,
     "category_id": 6,
     "pack_type_id": 6,
-    "store_id": 18
+    "store_id": 18,
+    "dir_path": "static/products/product_86"
   },
   {
     "id": 87,
@@ -1302,7 +1388,8 @@
     "created_at": 1676069776,
     "category_id": 1,
     "pack_type_id": 3,
-    "store_id": 18
+    "store_id": 18,
+    "dir_path": "static/products/product_87"
   },
   {
     "id": 88,
@@ -1317,7 +1404,8 @@
     "created_at": 1676069776,
     "category_id": 4,
     "pack_type_id": 4,
-    "store_id": 18
+    "store_id": 18,
+    "dir_path": "static/products/product_88"
   },
   {
     "id": 89,
@@ -1332,7 +1420,8 @@
     "created_at": 1676069776,
     "category_id": 4,
     "pack_type_id": 4,
-    "store_id": 18
+    "store_id": 18,
+    "dir_path": "static/products/product_89"
   },
   {
     "id": 90,
@@ -1347,7 +1436,8 @@
     "created_at": 1676069776,
     "category_id": 6,
     "pack_type_id": 3,
-    "store_id": 18
+    "store_id": 18,
+    "dir_path": "static/products/product_90"
   },
   {
     "id": 91,
@@ -1362,7 +1452,8 @@
     "created_at": 1676069776,
     "category_id": 4,
     "pack_type_id": 8,
-    "store_id": 19
+    "store_id": 19,
+    "dir_path": "static/products/product_91"
   },
   {
     "id": 92,
@@ -1377,7 +1468,8 @@
     "created_at": 1676069776,
     "category_id": 9,
     "pack_type_id": 8,
-    "store_id": 19
+    "store_id": 19,
+    "dir_path": "static/products/product_92"
   },
   {
     "id": 93,
@@ -1392,7 +1484,8 @@
     "created_at": 1676069776,
     "category_id": 10,
     "pack_type_id": 3,
-    "store_id": 19
+    "store_id": 19,
+    "dir_path": "static/products/product_93"
   },
   {
     "id": 94,
@@ -1407,7 +1500,8 @@
     "created_at": 1676069776,
     "category_id": 3,
     "pack_type_id": 5,
-    "store_id": 19
+    "store_id": 19,
+    "dir_path": "static/products/product_94"
   },
   {
     "id": 95,
@@ -1422,7 +1516,8 @@
     "created_at": 1676069776,
     "category_id": 2,
     "pack_type_id": 4,
-    "store_id": 19
+    "store_id": 19,
+    "dir_path": "static/products/product_95"
   },
   {
     "id": 96,
@@ -1437,7 +1532,8 @@
     "created_at": 1676069776,
     "category_id": 5,
     "pack_type_id": 6,
-    "store_id": 20
+    "store_id": 20,
+    "dir_path": "static/products/product_96"
   },
   {
     "id": 97,
@@ -1452,7 +1548,8 @@
     "created_at": 1676069776,
     "category_id": 8,
     "pack_type_id": 8,
-    "store_id": 20
+    "store_id": 20,
+    "dir_path": "static/products/product_97"
   },
   {
     "id": 98,
@@ -1467,7 +1564,8 @@
     "created_at": 1676069776,
     "category_id": 3,
     "pack_type_id": 9,
-    "store_id": 20
+    "store_id": 20,
+    "dir_path": "static/products/product_98"
   },
   {
     "id": 99,
@@ -1482,7 +1580,8 @@
     "created_at": 1676069776,
     "category_id": 2,
     "pack_type_id": 1,
-    "store_id": 20
+    "store_id": 20,
+    "dir_path": "static/products/product_99"
   },
   {
     "id": 100,
@@ -1497,6 +1596,7 @@
     "created_at": 1676069776,
     "category_id": 5,
     "pack_type_id": 7,
-    "store_id": 20
+    "store_id": 20,
+    "dir_path": "static/products/product_100"
   }
 ]
