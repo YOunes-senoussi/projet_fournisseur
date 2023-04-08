@@ -488,6 +488,8 @@ PRODUCT_NOT_AVAILABLE = -6
 PRODUCT_WRONG_PRICE = -8
 
 @api_view(["POST", "PUT"])
+# @authentication_classes([TokenAuthentication])
+# @permission_classes([IsAuthenticated])
 def create_order(request: Request):
 
     store_id = request.data.get("store_id", None)
@@ -555,6 +557,8 @@ def create_order(request: Request):
 
 
 @api_view(["POST", "PUT"])
+# @authentication_classes([TokenAuthentication])
+# @permission_classes([IsAuthenticated])
 def update_order_state(request: Request, order_id: int):
 
     order = Order.objects.filter(pk=order_id).first()
@@ -595,11 +599,15 @@ def update_order_state(request: Request, order_id: int):
 
 
 @api_view(["DELETE"])
+# @authentication_classes([TokenAuthentication])
+# @permission_classes([IsAuthenticated])
 def delete_order(request: Request, order_id: int):
     return Response(Order.objects.filter(pk=order_id).delete())
 
 
 @api_view(["POST"])
+# @authentication_classes([TokenAuthentication])
+# @permission_classes([IsAuthenticated])
 def check_coupon(request: Request):
 
     store_id = request.data.get("store_id", None)
@@ -673,7 +681,7 @@ def check_coupon(request: Request):
         )
 
     products = Product.objects.filter(id__in=products_ids)
-    products = list(filter(lambda p:coupon_on_product(coupon, p), products))
+    products = list(filter(lambda p:coupon_works_on_product(coupon, p), products))
     products = list(map(lambda p:p.id, products))
 
     if products:
@@ -699,7 +707,7 @@ def check_coupon(request: Request):
         )
     
 
-def coupon_on_product(coupon: Coupon, product: Product):
+def coupon_works_on_product(coupon: Coupon, product: Product):
 
     if coupon.coupon_type=="All":
         return True

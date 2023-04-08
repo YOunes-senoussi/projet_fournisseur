@@ -75,6 +75,18 @@ class Store(models.Model):
 
     # reverse relationships: [group*, coupon*, order*, product*, notification*, ad*]
 
+    # ###############
+    fields_to_update = [
+        "store_name", "full_name", "phone_number", "password", "e_mail", 
+        "wilaya", "commune", "address", "latitude", "longitude"
+    ]
+
+    to_dict_fields = [
+        "id", "store_name", "full_name", "image_url", "phone_number", "password", "e_mail", 
+        "wilaya", "commune", "address", "created_at", "dir_path", "latitude", "longitude"
+    ]
+    # ###############
+
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['store_name'], name='unique_store_name'),
@@ -91,25 +103,34 @@ class Store(models.Model):
 
         if img =="default":
             store = cls(**kwargs)
+            store.save()
+            store.refresh_from_db()
+
             store.dir_path = f"static/stores/store_{store.id}"
             store.image_url = f"{store.dir_path}/store_{store.id}"
             store.save()
             store.refresh_from_db()
+
             pathlib.Path(store.dir_path).mkdir(exist_ok=True)
             store.image_url = copy_image(source_path=DEFAULT_STORE_IMG_PATH, destination_path=store.image_url)
-            store.save()
 
         else:
             img = img.split(",")[-1]
             image = decode_image(img)
+
             store = cls(**kwargs)
+            store.save()
+            store.refresh_from_db()
+
             store.dir_path = f"static/stores/store_{store.id}"
             store.image_url = f"{store.dir_path}/store_{store.id}.{image.format}"
             store.save()
             store.refresh_from_db()
+
             pathlib.Path(store.dir_path).mkdir(exist_ok=True)
             image.save(store.image_url)
 
+        store.save()
         store.refresh_from_db()
 
         # creating an account
@@ -126,6 +147,7 @@ class Store(models.Model):
 
             if img=="default":
                 self.update_fields(*args, **kwargs)
+                
                 delete_img(self.image_url)
                 img_path = f"{self.dir_path}/store_{self.id}"
                 img_path = copy_image(source_path=DEFAULT_STORE_IMG_PATH, destination_path=img_path)
@@ -133,7 +155,9 @@ class Store(models.Model):
             else:
                 img = img.split(",")[-1]
                 image = decode_image(img)
+
                 self.update_fields(*args, **kwargs)
+                
                 delete_img(self.image_url)
                 img_path = f"{self.dir_path}/store_{self.id}.{image.format}"
                 image.save(img_path)
@@ -157,20 +181,9 @@ class Store(models.Model):
 
     def update_fields(self, *args, **kwargs):
 
-        if "store_name" in kwargs: self.store_name = kwargs["store_name"]
-        if "full_name" in kwargs: self.full_name = kwargs["full_name"]
-        if "image_url" in kwargs: self.image_url = kwargs["image_url"]
-
-        if "phone_number" in kwargs: self.phone_number = kwargs["phone_number"]
-        if "password" in kwargs: self.password = kwargs["password"]
-        if "e_mail" in kwargs: self.e_mail = kwargs["e_mail"]
-
-        if "wilaya" in kwargs: self.wilaya = kwargs["wilaya"]
-        if "commune" in kwargs: self.commune = kwargs["commune"]
-        if "address" in kwargs: self.address = kwargs["address"]
-
-        if "latitude" in kwargs: self.latitude = kwargs["latitude"]
-        if "longitude" in kwargs: self.longitude = kwargs["longitude"]
+        for field, value in kwargs.items():
+            if field in self.fields_to_update:
+                setattr(self, field, value)
 
         self.save()
         self.refresh_from_db()
@@ -178,28 +191,7 @@ class Store(models.Model):
         return self
 
     def to_dict(self):
-        return {
-            "id": self.id,
-            
-            "store_name": self.store_name,
-            "full_name": self.full_name,
-            "image_url": self.image_url,
-            
-            "phone_number": self.phone_number,
-            "password": self.password,
-            "e_mail": self.e_mail,
-            
-            "wilaya": self.wilaya,
-            "commune": self.commune,
-            "address": self.address,
-            
-            "created_at": self.created_at,
-            
-            "latitude": self.latitude,
-            "longitude": self.longitude,
-            
-            "fav_clients": list(chain(*self.fav_clients.values_list("id"))),
-        }
+        return dict(list(map(lambda field: [field, getattr(self, field, None)], self.to_dict_fields)))
 
 
 class Client(models.Model):
@@ -229,6 +221,18 @@ class Client(models.Model):
 
     # reverse relationships: [couponclient*, order*, notification*]
 
+    # ###############
+    fields_to_update = [
+        "shop_name", "full_name", "phone_number", "password", "e_mail", 
+        "wilaya", "commune", "address", "latitude", "longitude"
+    ]
+
+    to_dict_fields = [
+        "id", "shop_name", "full_name", "image_url", "phone_number", "password", "e_mail", 
+        "wilaya", "commune", "address", "created_at", "dir_path", "latitude", "longitude"
+    ]
+    # ###############
+
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['shop_name'], name='unique_shop_name'),
@@ -246,25 +250,34 @@ class Client(models.Model):
 
         if img =="default":
             client = cls(**kwargs)
+            client.save()
+            client.refresh_from_db()
+
             client.dir_path = f"static/clients/client_{client.id}"
             client.image_url = f"{client.dir_path}/client_{client.id}"
             client.save()
             client.refresh_from_db()
+
             pathlib.Path(client.dir_path).mkdir(exist_ok=True)
             client.image_url = copy_image(source_path=DEFAULT_CLIENT_IMG_PATH, destination_path=client.image_url)
-            client.save()
 
         else:
             img = img.split(",")[-1]
             image = decode_image(img)
+
             client = cls(**kwargs)
+            client.save()
+            client.refresh_from_db()
+
             client.dir_path = f"static/clients/client_{client.id}"
             client.image_url = f"{client.dir_path}/client_{client.id}.{image.format}"
             client.save()
             client.refresh_from_db()
+            
             pathlib.Path(client.dir_path).mkdir(exist_ok=True)
             image.save(client.image_url)
 
+        client.save()
         client.refresh_from_db()
 
         # creating an account
@@ -281,6 +294,7 @@ class Client(models.Model):
 
             if img=="default":
                 self.update_fields(*args, **kwargs)
+                
                 delete_img(self.image_url)
                 img_path = f"{self.dir_path}/client_{self.id}"
                 img_path = copy_image(source_path=DEFAULT_CLIENT_IMG_PATH, destination_path=img_path)
@@ -288,7 +302,9 @@ class Client(models.Model):
             else:
                 img = img.split(",")[-1]
                 image = decode_image(img)
+                
                 self.update_fields(*args, **kwargs)
+                
                 delete_img(self.image_url)
                 img_path = f"{self.dir_path}/client_{self.id}.{image.format}"
                 image.save(img_path)
@@ -311,20 +327,9 @@ class Client(models.Model):
 
     def update_fields(self, *args, **kwargs):
 
-        if "shop_name" in kwargs: self.shop_name = kwargs["shop_name"]
-        if "full_name" in kwargs: self.full_name = kwargs["full_name"]
-        if "image_url" in kwargs: self.image_url = kwargs["image_url"]
-
-        if "phone_number" in kwargs: self.phone_number = kwargs["phone_number"]
-        if "password" in kwargs: self.password = kwargs["password"]
-        if "e_mail" in kwargs: self.e_mail = kwargs["e_mail"]
-
-        if "wilaya" in kwargs: self.wilaya = kwargs["wilaya"]
-        if "commune" in kwargs: self.commune = kwargs["commune"]
-        if "address" in kwargs: self.address = kwargs["address"]
-
-        if "latitude" in kwargs: self.latitude = kwargs["latitude"]
-        if "longitude" in kwargs: self.longitude = kwargs["longitude"]
+        for field, value in kwargs.items():
+            if field in self.fields_to_update:
+                setattr(self, field, value)
 
         self.save()
         self.refresh_from_db()
@@ -332,31 +337,11 @@ class Client(models.Model):
         return self
 
     def to_dict(self):
-        return {
-            "id": self.id,
-            
-            "shop_name": self.shop_name,
-            "full_name": self.full_name,
-            "image_url": self.image_url,
-            
-            "phone_number": self.phone_number,
-            "password": self.password,
-            "e_mail": self.e_mail,
-            
-            "wilaya": self.wilaya,
-            "commune": self.commune,
-            "address": self.address,
-            
-            "created_at": self.created_at,
-            
-            "latitude": self.latitude,
-            "longitude": self.longitude,
-
-            "fav_stores": list(chain(*self.fav_stores.values_list("id"))),
-        }
+        return dict(list(map(lambda field: [field, getattr(self, field, None)], self.to_dict_fields)))
 
 
 class Group(models.Model):
+    
     name = models.CharField(max_length=100, default="")
     store = models.ForeignKey(
         to="Store",
@@ -370,6 +355,16 @@ class Group(models.Model):
     clients = models.ManyToManyField(to="Client", through="GroupClient")
 
     # reverse relationships: []
+
+    # ###############
+    fields_to_update = [
+        "name"
+    ]
+
+    to_dict_fields = [
+        "id", "name", "store_id", "created_at"
+    ]
+    # ###############
 
     class Meta:
         constraints = [
@@ -390,21 +385,21 @@ class Group(models.Model):
 
     def update(self, *args, **kwargs):
 
-        if "name" in kwargs: self.name = kwargs["name"]
+        return self.update_fields(*args, **kwargs)
+
+    def update_fields(self, *args, **kwargs):
+
+        for field, value in kwargs.items():
+            if field in self.fields_to_update:
+                setattr(self, field, value)
 
         self.save()
         self.refresh_from_db()
+
         return self
 
     def to_dict(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-            "store_id": self.store_id,
-            "created_at": self.created_at,
-
-            "clients": list(chain(*self.clients.values_list("id"))),
-        }
+        return dict(list(map(lambda field: [field, getattr(self, field, None)], self.to_dict_fields)))
 
 
 # Intermediary (simple)
@@ -426,6 +421,16 @@ class GroupClient(models.Model):
 
     # reverse relationships: []
 
+    # ###############
+    fields_to_update = [
+        "group_id", "client_id"
+    ]
+
+    to_dict_fields = [
+        "id", "group_id", "client_id"
+    ]
+    # ###############
+
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['group_id', 'client_id'], name='unique_group_client'),
@@ -441,20 +446,22 @@ class GroupClient(models.Model):
         return group_client
 
     def update(self, *args, **kwargs):
+        
+        return self.update_fields(*args, **kwargs)
 
-        if "group_id" in kwargs: self.group_id = kwargs["group_id"]
-        if "client_id" in kwargs: self.client_id = kwargs["client_id"]
+    def update_fields(self, *args, **kwargs):
+
+        for field, value in kwargs.items():
+            if field in self.fields_to_update:
+                setattr(self, field, value)
 
         self.save()
         self.refresh_from_db()
+
         return self
 
     def to_dict(self):
-        return {
-            "id": self.id,
-            "group_id": self.group_id,
-            "client_id": self.client_id,
-        }
+        return dict(list(map(lambda field: [field, getattr(self, field, None)], self.to_dict_fields)))
 
 
 # Intermediary (simple)
@@ -471,6 +478,16 @@ class StoreFavClient(models.Model):
 
     # reverse relationships: []
 
+    # ###############
+    fields_to_update = [
+        "store_id", "client_id"
+    ]
+
+    to_dict_fields = [
+        "id", "store_id", "client_id"
+    ]
+    # ###############
+
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['store_id', 'client_id'], name='unique_store_client'),
@@ -486,20 +503,22 @@ class StoreFavClient(models.Model):
         return fav_client
 
     def update(self, *args, **kwargs):
+        
+        return self.update_fields(*args, **kwargs)
 
-        if "store_id" in kwargs: self.store_id = kwargs["store_id"]
-        if "client_id" in kwargs: self.client_id = kwargs["client_id"]
+    def update_fields(self, *args, **kwargs):
+
+        for field, value in kwargs.items():
+            if field in self.fields_to_update:
+                setattr(self, field, value)
 
         self.save()
         self.refresh_from_db()
+
         return self
 
     def to_dict(self):
-        return {
-            "id": self.id,
-            "store_id": self.store_id,
-            "client_id": self.client_id,
-        }
+        return dict(list(map(lambda field: [field, getattr(self, field, None)], self.to_dict_fields)))
 
 
 # Intermediary (simple)
@@ -516,6 +535,16 @@ class ClientFavStore(models.Model):
 
     # reverse relationships: []
 
+    # ###############
+    fields_to_update = [
+        "client_id", "store_id",
+    ]
+
+    to_dict_fields = [
+        "id", "client_id", "store_id"
+    ]
+    # ###############
+
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['client_id', 'store_id'], name='unique_client_store'),
@@ -531,24 +560,27 @@ class ClientFavStore(models.Model):
         return fav_store
 
     def update(self, *args, **kwargs):
+        
+        return self.update_fields(*args, **kwargs)
 
-        if "client_id" in kwargs: self.client_id = kwargs["client_id"]
-        if "store_id" in kwargs: self.store_id = kwargs["store_id"]
+    def update_fields(self, *args, **kwargs):
+
+        for field, value in kwargs.items():
+            if field in self.fields_to_update:
+                setattr(self, field, value)
 
         self.save()
         self.refresh_from_db()
+
         return self
 
     def to_dict(self):
-        return {
-            "id": self.id,
-            "client_id": self.client_id,
-            "store_id": self.store_id,
-        }
+        return dict(list(map(lambda field: [field, getattr(self, field, None)], self.to_dict_fields)))
 
 
 # ################## 
 class Product(models.Model):
+    
     name = models.CharField(max_length=100, default="")
     brand = models.CharField(max_length=100, default="")
     price = models.FloatField()
@@ -587,6 +619,18 @@ class Product(models.Model):
 
     # reverse relationships: [orderproducts*, cartproduct*, ad*]
 
+    # ###############
+    fields_to_update = [
+        "name", "brand", "price", "category_id", "pack_type_id", 
+        "description", "nbr_units", "discount", "is_available"
+    ]
+
+    to_dict_fields = [
+        "id", "name", "brand", "price", "image_url", "store_id", "category_id", "pack_type_id", 
+        "description", "nbr_units", "discount", "is_available", "created_at", "dir_path"
+    ]
+    # ###############
+
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['name', 'store_id'], name='unique_product_name'),
@@ -606,26 +650,36 @@ class Product(models.Model):
 
         if img =="default":
             product = cls(**kwargs)
+            product.save()
+            product.refresh_from_db()
+
             product.dir_path = f"static/products/product_{product.id}"
             product.image_url = f"{product.dir_path}/product_{product.id}"
             product.save()
             product.refresh_from_db()
+            
             pathlib.Path(product.dir_path).mkdir(exist_ok=True)
             product.image_url = copy_image(source_path=DEFAULT_PRODUCT_IMG_PATH, destination_path=product.image_url)
-            product.save()
 
         else:
             img = img.split(",")[-1]
             image = decode_image(img)
+
             product = cls(**kwargs)
+            product.save()
+            product.refresh_from_db()
+
             product.dir_path = f"static/products/product_{product.id}"
             product.image_url = f"{product.dir_path}/product_{product.id}.{image.format}"
             product.save()
             product.refresh_from_db()
+
             pathlib.Path(product.dir_path).mkdir(exist_ok=True)
             image.save(product.image_url)
 
+        product.save()
         product.refresh_from_db()
+
         return product
         
     def update(self, *args, **kwargs):
@@ -635,14 +689,18 @@ class Product(models.Model):
 
             if img=="default":
                 self.update_fields(*args, **kwargs)
+                
                 delete_img(self.image_url)
+                
                 img_path = f"{self.dir_path}/product_{self.id}"
                 img_path = copy_image(source_path=DEFAULT_PRODUCT_IMG_PATH, destination_path=img_path)
 
             else:
                 img = img.split(",")[-1]
                 image = decode_image(img)
+                
                 self.update_fields(*args, **kwargs)
+                
                 delete_img(self.image_url)
                 img_path = f"{self.dir_path}/product_{self.id}.{image.format}"
                 image.save(img_path)
@@ -655,51 +713,39 @@ class Product(models.Model):
             self.update_fields(*args, **kwargs)
 
         return self
-
+    
     def update_fields(self, *args, **kwargs):
 
-        if "name" in kwargs: self.name = kwargs["name"]
-        if "brand" in kwargs: self.brand = kwargs["brand"]
-        if "price" in kwargs: self.price = kwargs["price"]
-        
-        if "category_id" in kwargs: self.category_id = kwargs["category_id"]
-        if "pack_type_id" in kwargs: self.pack_type_id = kwargs["pack_type_id"]
-        
-        if "description" in kwargs: self.description = kwargs["description"]
-        if "nbr_units" in kwargs: self.nbr_units = kwargs["nbr_units"]
-        if "discount" in kwargs: self.discount = kwargs["discount"]
-        
-        if "is_available" in kwargs: self.is_available = kwargs["is_available"]
+        for field, value in kwargs.items():
+            if field in self.fields_to_update:
+                setattr(self, field, value)
 
         self.save()
         self.refresh_from_db()
 
         return self
-    
+
     def to_dict(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-            "brand": self.brand,
-            "price": self.price,
-            
-            "category_id": self.category_id,
-            "pack_type_id": self.pack_type_id,
-            
-            "description": self.description,
-            "nbr_units": self.nbr_units,
-            "discount": self.discount,
-            
-            "is_available": self.is_available,
-        }
+        return dict(list(map(lambda field: [field, getattr(self, field, None)], self.to_dict_fields)))
 
 
 class Category(models.Model):
+    
     name = models.CharField(max_length=100, default="")
     image_url = models.CharField(max_length=100, default="")
     dir_path = models.CharField(max_length=100, default="")
 
     # reverse relationships: [product*]
+
+    # ###############
+    fields_to_update = [
+        "name"
+    ]
+
+    to_dict_fields = [
+        "id", "name", "image_url", "dir_path"
+    ]
+    # ###############
 
     class Meta:
         constraints = [
@@ -716,25 +762,34 @@ class Category(models.Model):
 
         if img =="default":
             category = cls(**kwargs)
+            category.save()
+            category.refresh_from_db()
+
             category.dir_path = f"static/categories/category_{category.id}"
             category.image_url = f"{category.dir_path}/category_{category.id}"
             category.save()
             category.refresh_from_db()
+            
             pathlib.Path(category.dir_path).mkdir(exist_ok=True)
             category.image_url = copy_image(source_path=DEFAULT_CATEGORY_IMG_PATH, destination_path=category.image_url)
-            category.save()
 
         else:
             img = img.split(",")[-1]
             image = decode_image(img)
+
             category = cls(**kwargs)
+            category.save()
+            category.refresh_from_db()
+
             category.dir_path = f"static/categories/category_{category.id}"
             category.image_url = f"{category.dir_path}/category_{category.id}.{image.format}"
             category.save()
             category.refresh_from_db()
+
             pathlib.Path(category.dir_path).mkdir(exist_ok=True)
             image.save(category.image_url)
 
+        category.save()
         category.refresh_from_db()
         return category
     
@@ -745,6 +800,7 @@ class Category(models.Model):
 
             if img=="default":
                 self.update_fields(*args, **kwargs)
+                
                 delete_img(self.image_url)
                 img_path = f"{self.dir_path}/category_{self.id}"
                 img_path = copy_image(source_path=DEFAULT_CATEGORY_IMG_PATH, destination_path=img_path)
@@ -752,7 +808,9 @@ class Category(models.Model):
             else:
                 img = img.split(",")[-1]
                 image = decode_image(img)
+                
                 self.update_fields(*args, **kwargs)
+                
                 delete_img(self.image_url)
                 img_path = f"{self.dir_path}/category_{self.id}.{image.format}"
                 image.save(img_path)
@@ -765,28 +823,37 @@ class Category(models.Model):
             self.update_fields(*args, **kwargs)
 
         return self
-
+    
     def update_fields(self, *args, **kwargs):
 
-        if "name" in kwargs: self.name = kwargs["name"]
+        for field, value in kwargs.items():
+            if field in self.fields_to_update:
+                setattr(self, field, value)
 
         self.save()
         self.refresh_from_db()
 
         return self
-    
+
     def to_dict(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-            "image_url": self.image_url,
-        }
+        return dict(list(map(lambda field: [field, getattr(self, field, None)], self.to_dict_fields)))
 
 
 class PackType(models.Model):
+    
     name = models.CharField(max_length=100, default="")
 
     # reverse relationships: [product*]
+
+    # ###############
+    fields_to_update = [
+        "name"
+    ]
+
+    to_dict_fields = [
+        "id", "name"
+    ]
+    # ###############
 
     class Meta:
         constraints = [
@@ -806,18 +873,23 @@ class PackType(models.Model):
         return pack_type
 
     def update(self, *args, **kwargs):
+        
+        return self.update_fields(*args, **kwargs)
 
-        if "name" in kwargs: self.name = kwargs["name"]
+    def update_fields(self, *args, **kwargs):
+
+        for field, value in kwargs.items():
+            if field in self.fields_to_update:
+                setattr(self, field, value)
 
         self.save()
         self.refresh_from_db()
+
         return self
 
     def to_dict(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-        }
+        return dict(list(map(lambda field: [field, getattr(self, field, None)], self.to_dict_fields)))
+
 
 # ################## 
 class Coupon(models.Model):
@@ -842,6 +914,18 @@ class Coupon(models.Model):
 
     # reverse relationships: [couponclient*, ordercoupon*]
 
+    # ###############
+    fields_to_update = [
+        "string", "discount", "coupon_type", 
+        "target_id", "max_nbr_uses", "is_active"
+    ]
+
+    to_dict_fields = [
+        "id", "string", "discount", "store_id", "coupon_type", 
+        "target_id", "max_nbr_uses", "created_at", "is_active"
+    ]
+    # ###############
+
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['string', 'store_id'], name='unique_coupon'),
@@ -863,29 +947,22 @@ class Coupon(models.Model):
         return coupon
 
     def update(self, *args, **kwargs):
+        
+        return self.update_fields(*args, **kwargs)
 
-        if "string" in kwargs: self.string = kwargs["string"]
-        if "discount" in kwargs: self.discount = kwargs["discount"]
-        if "coupon_type" in kwargs: self.coupon_type = kwargs["coupon_type"]
-        if "target_id" in kwargs: self.target_id = kwargs["target_id"]
-        if "max_nbr_uses" in kwargs: self.max_nbr_uses = kwargs["max_nbr_uses"]
-        if "is_active" in kwargs: self.is_active = kwargs["is_active"]
+    def update_fields(self, *args, **kwargs):
+
+        for field, value in kwargs.items():
+            if field in self.fields_to_update:
+                setattr(self, field, value)
 
         self.save()
+        self.refresh_from_db()
+
         return self
 
     def to_dict(self):
-        return {
-            "id": self.id,
-            "string": self.string,
-            "discount": self.discount,
-            "store_id": self.store_id,
-            "coupon_type": self.coupon_type,
-            "target_id": self.target_id,
-            "max_nbr_uses": self.max_nbr_uses,
-            "created_at": self.created_at,
-            "is_active": self.is_active,
-        }
+        return dict(list(map(lambda field: [field, getattr(self, field, None)], self.to_dict_fields)))
 
 
 # Intermediary
@@ -909,6 +986,16 @@ class CouponClient(models.Model):
 
     # reverse relationships: []
 
+    # ###############
+    fields_to_update = [
+        "client_id", "coupon_id", "count"
+    ]
+
+    to_dict_fields = [
+        "id", "client_id", "coupon_id", "count"
+    ]
+    # ###############
+
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['client_id', 'coupon_id'], name='unique_client_coupon'),
@@ -925,22 +1012,23 @@ class CouponClient(models.Model):
         return coupon_client
 
     def update(self, *args, **kwargs):
+        
+        return self.update_fields(*args, **kwargs)
 
-        if "client_id" in kwargs: self.client_id = kwargs["client_id"]
-        if "coupon_id" in kwargs: self.coupon_id = kwargs["coupon_id"]
-        if "count" in kwargs: self.count = kwargs["count"]
+    def update_fields(self, *args, **kwargs):
+
+        for field, value in kwargs.items():
+            if field in self.fields_to_update:
+                setattr(self, field, value)
 
         self.save()
         self.refresh_from_db()
+
         return self
 
     def to_dict(self):
-        return {
-            "id": self.id,
-            "client_id": self.client_id,
-            "coupon_id": self.coupon_id,
-            "count": self.count,
-        }
+        return dict(list(map(lambda field: [field, getattr(self, field, None)], self.to_dict_fields)))
+
 
 # ################## 
 class Order(models.Model):
@@ -983,6 +1071,17 @@ class Order(models.Model):
 
     # reverse relationships: [orderstate*, ordercoupon*, orderproduct*]
 
+    # ###############
+    fields_to_update = [
+        "current_state_id", "total_price", "archived_by_store", "archived_by_client"
+    ]
+
+    to_dict_fields = [
+        "id", "store_id", "client_id", "current_state_id", "created_at",
+        "total_price", "archived_by_store", "archived_by_client"
+    ]
+    # ###############
+
     class Meta:
         constraints = [
             models.CheckConstraint(check=Q(total_price__gte=1), name='order_positive_total_price'),
@@ -1000,14 +1099,14 @@ class Order(models.Model):
         return order
 
     def update(self, *args, **kwargs):
-
-        if "store_id" in kwargs: self.store_id = kwargs["store_id"]
-        if "client_id" in kwargs: self.client_id = kwargs["client_id"]
-        if "current_state_id" in kwargs: self.current_state_id = kwargs["current_state_id"]
-        if "total_price" in kwargs: self.total_price = kwargs["total_price"]
         
-        if "archived_by_store" in kwargs: self.archived_by_store = kwargs["archived_by_store"]
-        if "archived_by_client" in kwargs: self.archived_by_client = kwargs["archived_by_client"]
+        return self.update_fields(*args, **kwargs)
+
+    def update_fields(self, *args, **kwargs):
+
+        for field, value in kwargs.items():
+            if field in self.fields_to_update:
+                setattr(self, field, value)
 
         self.save()
         self.refresh_from_db()
@@ -1015,18 +1114,7 @@ class Order(models.Model):
         return self
 
     def to_dict(self):
-        return {
-            "id": self.id,
-            "store_id": self.store_id,
-            "client_id": self.client_id,
-            "current_state_id": self.current_state_id,
-            "created_at": self.created_at,
-            "total_price": self.total_price,
-            "coupons": list(chain(*self.coupons.values_list("id"))),
-            "products": list(chain(*self.products.values_list("id"))),
-            "archived_by_store": self.archived_by_store,
-            "archived_by_client": self.archived_by_client,
-        }
+        return dict(list(map(lambda field: [field, getattr(self, field, None)], self.to_dict_fields)))
 
 
 class OrderState(models.Model):
@@ -1044,6 +1132,17 @@ class OrderState(models.Model):
     updated_by_store = models.BooleanField(default=True)
 
     # reverse relationships: []
+
+    # ###############
+    fields_to_update = [
+        "state", "description",
+    ]
+
+    to_dict_fields = [
+        "id", "order_id", "state", "description", "time_stamp", "updated_by_store",
+    ]
+    # ###############
+
     class Meta:
         constraints = []
 
@@ -1060,23 +1159,22 @@ class OrderState(models.Model):
         return order_state
     
     def update(self, *args, **kwargs):
+        
+        return self.update_fields(*args, **kwargs)
 
-        if "state" in kwargs: self.state = kwargs["state"]
-        if "description" in kwargs: self.description = kwargs["description"]
+    def update_fields(self, *args, **kwargs):
+
+        for field, value in kwargs.items():
+            if field in self.fields_to_update:
+                setattr(self, field, value)
 
         self.save()
         self.refresh_from_db()
+
         return self
 
     def to_dict(self):
-        return {
-            "id": self.id,
-            "order_id": self.order_id,
-            "state": self.state,
-            "description": self.description,
-            "time_stamp": self.time_stamp,
-            "updated_by_store": self.updated_by_store,
-        }
+        return dict(list(map(lambda field: [field, getattr(self, field, None)], self.to_dict_fields)))
 
 
 # Intermediary (simple)
@@ -1099,6 +1197,15 @@ class OrderCoupon(models.Model):
     )
 
     # reverse relationships: []
+
+    # ###############
+    fields_to_update = []
+
+    to_dict_fields = [
+        "id", "order_id", "coupon_id"
+    ]
+    # ###############
+
     class Meta:
         constraints = []
 
@@ -1112,24 +1219,27 @@ class OrderCoupon(models.Model):
         return order_coupon
     
     def update(self, *args, **kwargs):
+        
+        return self.update_fields(*args, **kwargs)
 
-        if "order_id" in kwargs: self.order_id = kwargs["order_id"]
-        if "coupon_id" in kwargs: self.coupon_id = kwargs["coupon_id"]
+    def update_fields(self, *args, **kwargs):
+
+        for field, value in kwargs.items():
+            if field in self.fields_to_update:
+                setattr(self, field, value)
 
         self.save()
         self.refresh_from_db()
+
         return self
 
     def to_dict(self):
-        return {
-            "id": self.id,
-            "order_id": self.order_id,
-            "coupon_id": self.coupon_id,
-        }
+        return dict(list(map(lambda field: [field, getattr(self, field, None)], self.to_dict_fields)))
 
 
 # Intermediary
 class OrderProduct(models.Model):
+
     order = models.ForeignKey(
         to="Order",
         on_delete=models.CASCADE,
@@ -1152,6 +1262,16 @@ class OrderProduct(models.Model):
 
     # reverse relationships: []
 
+    # ###############
+    fields_to_update = [
+        "quantity", "discount", "original_price", "new_price"
+    ]
+
+    to_dict_fields = [
+        "id", "order_id", "product_id", "quantity", "discount", "original_price", "new_price"
+    ]
+    # ###############
+
     class Meta:
         constraints = [
             models.CheckConstraint(check=Q(quantity__gte=1), name='product_positive_quantity'),
@@ -1171,28 +1291,22 @@ class OrderProduct(models.Model):
         return order_product
     
     def update(self, *args, **kwargs):
+        
+        return self.update_fields(*args, **kwargs)
 
-        if "order_id" in kwargs: self.order_id = kwargs["order_id"]
-        if "product_id" in kwargs: self.product_id = kwargs["product_id"]
-        if "quantity" in kwargs: self.quantity = kwargs["quantity"]
-        if "discount" in kwargs: self.discount = kwargs["discount"]
-        if "original_price" in kwargs: self.original_price = kwargs["original_price"]
-        if "new_price" in kwargs: self.new_price = kwargs["new_price"]
+    def update_fields(self, *args, **kwargs):
+
+        for field, value in kwargs.items():
+            if field in self.fields_to_update:
+                setattr(self, field, value)
 
         self.save()
         self.refresh_from_db()
+
         return self
 
     def to_dict(self):
-        return {
-            "id": self.id,
-            "order_id": self.order_id,
-            "product_id": self.product_id,
-            "quantity": self.quantity,
-            "discount": self.discount,
-            "original_price": self.original_price,
-            "new_price": self.new_price,
-        }
+        return dict(list(map(lambda field: [field, getattr(self, field, None)], self.to_dict_fields)))
 
     @classmethod
     def validate(cls, **kwargs):
@@ -1213,6 +1327,7 @@ class OrderProduct(models.Model):
             raise FieldError(f"discount: {kwargs['discount']} is out of range [0, 100]")
         
         return True
+
 
 # ################## 
 # Intermediary
@@ -1236,6 +1351,16 @@ class ClientProduct(models.Model):
 
     # reverse relationships: []
 
+    # ###############
+    fields_to_update = [
+        "quantity"
+    ]
+
+    to_dict_fields = [
+        "id", "client_id", "product_id", "quantity"
+    ]
+    # ###############
+
     class Meta:
         constraints = [
             models.CheckConstraint(check=Q(quantity__gte=1), name='cart_positive_quantity'),
@@ -1251,22 +1376,22 @@ class ClientProduct(models.Model):
         return cart_product
     
     def update(self, *args, **kwargs):
+        
+        return self.update_fields(*args, **kwargs)
 
-        if "client_id" in kwargs: self.client_id = kwargs["client_id"]
-        if "product_id" in kwargs: self.product_id = kwargs["product_id"]
-        if "quantity" in kwargs: self.quantity = kwargs["quantity"]
+    def update_fields(self, *args, **kwargs):
+
+        for field, value in kwargs.items():
+            if field in self.fields_to_update:
+                setattr(self, field, value)
 
         self.save()
         self.refresh_from_db()
+
         return self
 
     def to_dict(self):
-        return {
-            "id": self.id,
-            "client_id": self.client_id,
-            "product_id": self.product_id,
-            "quantity": self.quantity,
-        }
+        return dict(list(map(lambda field: [field, getattr(self, field, None)], self.to_dict_fields)))
 
 
 # ################## 
@@ -1286,6 +1411,16 @@ class StoreNotification(models.Model):
     created_at = models.IntegerField(default=get_now_stamp)
 
     # reverse relationships: []
+
+    # ###############
+    fields_to_update = [
+        "seen"
+    ]
+
+    to_dict_fields = [
+        "id", "store_id", "action", "message", "seen", "created_at"
+    ]
+    # ###############
     
     class Meta:
         constraints = []
@@ -1303,25 +1438,22 @@ class StoreNotification(models.Model):
         return notification
     
     def update(self, *args, **kwargs):
+        
+        return self.update_fields(*args, **kwargs)
 
-        # if "store_id" in kwargs: self.store_id = kwargs["store_id"]
-        # if "action" in kwargs: self.action = kwargs["action"]
-        # if "message" in kwargs: self.message = kwargs["message"]
-        if "seen" in kwargs: self.seen = kwargs["seen"]
+    def update_fields(self, *args, **kwargs):
+
+        for field, value in kwargs.items():
+            if field in self.fields_to_update:
+                setattr(self, field, value)
 
         self.save()
         self.refresh_from_db()
+
         return self
 
     def to_dict(self):
-        return {
-            "id": self.id,
-            "store_id": self.store_id,
-            "action": self.action,
-            "message": self.message,
-            "seen": self.seen,
-            "created_at": self.created_at,
-        }
+        return dict(list(map(lambda field: [field, getattr(self, field, None)], self.to_dict_fields)))
 
 
 class ClientNotification(models.Model):
@@ -1340,6 +1472,16 @@ class ClientNotification(models.Model):
     created_at = models.IntegerField(default=get_now_stamp)
 
     # reverse relationships: []
+
+    # ###############
+    fields_to_update = [
+        "seen"
+    ]
+
+    to_dict_fields = [
+        "id", "client_id", "action", "message", "seen", "created_at"
+    ]
+    # ###############
     
     class Meta:
         constraints = []
@@ -1358,24 +1500,22 @@ class ClientNotification(models.Model):
     
     def update(self, *args, **kwargs):
 
-        # if "client_id" in kwargs: self.client_id = kwargs["client_id"]
-        # if "action" in kwargs: self.action = kwargs["action"]
-        # if "message" in kwargs: self.message = kwargs["message"]
-        if "seen" in kwargs: self.seen = kwargs["seen"]
+        return self.update_fields(*args, **kwargs)
+
+    def update_fields(self, *args, **kwargs):
+
+        for field, value in kwargs.items():
+            if field in self.fields_to_update:
+                setattr(self, field, value)
 
         self.save()
         self.refresh_from_db()
+
         return self
 
     def to_dict(self):
-        return {
-            "id": self.id,
-            "client_id": self.client_id,
-            "action": self.action,
-            "message": self.message,
-            "seen": self.seen,
-            "created_at": self.created_at,
-        }
+        return dict(list(map(lambda field: [field, getattr(self, field, None)], self.to_dict_fields)))
+
 
 # ################## 
 class Advertisement(models.Model):
@@ -1402,7 +1542,18 @@ class Advertisement(models.Model):
 
     created_at = models.IntegerField(default=get_now_stamp)
     dir_path = models.CharField(max_length=100, default="")
+    
     # reverse relationships: [image*]
+
+    # ###############
+    fields_to_update = [
+        "description"
+    ]
+
+    to_dict_fields = [
+        "id", "store_id", "product_id", "ad_type", "description", "created_at", "dir_path"
+    ]
+    # ###############
     
     class Meta:
         constraints = [
@@ -1416,32 +1567,34 @@ class Advertisement(models.Model):
     def create(cls, *args, **kwargs):
         
         ad = cls(**kwargs)
+        ad.save()
+        ad.refresh_from_db()
+
         ad.dir_path = f"static/ads/ad_{ad.id}"
         ad.save()
         ad.refresh_from_db()
+        
         pathlib.Path(ad.dir_path).mkdir(exist_ok=True)
 
         return ad
 
     def update(self, *args, **kwargs):
+        
+        return self.update_fields(*args, **kwargs)
 
-        if "store_id" in kwargs: self.store_id = kwargs["store_id"]
-        if "product_id" in kwargs: self.product_id = kwargs["product_id"]
-        if "ad_type" in kwargs: self.ad_type = kwargs["ad_type"]
-        if "description" in kwargs: self.description = kwargs["description"]
+    def update_fields(self, *args, **kwargs):
+
+        for field, value in kwargs.items():
+            if field in self.fields_to_update:
+                setattr(self, field, value)
 
         self.save()
         self.refresh_from_db()
+
         return self
 
     def to_dict(self):
-        return {
-            "id": self.id,
-            "store_id": self.store_id,
-            "product_id": self.product_id,
-            "ad_type": self.ad_type,
-            "description": self.description,
-        }
+        return dict(list(map(lambda field: [field, getattr(self, field, None)], self.to_dict_fields)))
 
 
 class AdImage(models.Model):
@@ -1454,8 +1607,19 @@ class AdImage(models.Model):
         related_name="images",
         related_query_name="image",
     )
+    
     url = models.CharField(max_length=1000, default="")
     
+    # ###############
+    fields_to_update = [
+        "ad_id", "url"
+    ]
+
+    to_dict_fields = [
+        "id", "ad_id", "url"
+    ]
+    # ###############
+
     class Meta:
         constraints = []
 
@@ -1466,34 +1630,42 @@ class AdImage(models.Model):
 
         if img =="default":
             ad_image = cls(**kwargs)
+            ad_image.save()
+            ad_image.refresh_from_db()
+
             ad_image.url = f"{ad_image.ad.dir_path}/ad_image_{ad_image.id}"
             ad_image.save()
             ad_image.refresh_from_db()
+            
             ad_image.url = copy_image(source_path=DEFAULT_AD_IMG_PATH, destination_path=ad_image.url)
 
         else:
             img = img.split(",")[-1]
             image = decode_image(img)
+            
             ad_image = cls(**kwargs)
+            ad_image.save()
+            ad_image.refresh_from_db()
+            
             ad_image.url = f"{ad_image.ad.dir_path}/ad_image_{ad_image.id}.{image.format}"
             ad_image.save()
             ad_image.refresh_from_db()
+            
             image.save(ad_image.url)
+
+        ad_image.save()
+        ad_image.refresh_from_db()
 
         return ad_image
     
     def update(self, *args, **kwargs):
-
-        if "ad_id" in kwargs: self.ad_id = kwargs["ad_id"]
-        if "url" in kwargs: self.url = kwargs["url"]
-
-        self.save()
-        self.refresh_from_db()
         
         if "image" in kwargs:
             img = kwargs["image"]
 
             if img=="default":
+                self.update_fields(*args, **kwargs)
+                
                 delete_img(self.image_url)
                 img_path = f"{self.dir_path}/ad_image_{self.id}"
                 img_path = copy_image(source_path=DEFAULT_AD_IMG_PATH, destination_path=img_path)
@@ -1501,22 +1673,36 @@ class AdImage(models.Model):
             else:
                 img = img.split(",")[-1]
                 image = decode_image(img)
+                
+                self.update_fields(*args, **kwargs)
+                
                 delete_img(self.image_url)
                 img_path = f"{self.dir_path}/ad_image_{self.id}.{image.format}"
                 image.save(img_path)
 
             self.image_url = img_path
             self.save()
+            self.refresh_from_db()
 
+        else:
+            self.update_fields(*args, **kwargs)
+
+        return self
+
+    def update_fields(self, *args, **kwargs):
+
+        for field, value in kwargs.items():
+            if field in self.fields_to_update:
+                setattr(self, field, value)
+
+        self.save()
         self.refresh_from_db()
+
         return self
 
     def to_dict(self):
-        return {
-            "id": self.id,
-            "ad_id": self.ad_id,
-            "url": self.url,
-        }
+        return dict(list(map(lambda field: [field, getattr(self, field, None)], self.to_dict_fields)))
+
 
 # ################## 
 

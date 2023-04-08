@@ -40,11 +40,14 @@ notes:
 			else:
 				sends notification to the store
 
-		- don't use "create_orderstate" because:
+		- right after you create a new Order, 
+			a new OrderState is automatically created and set as the current_state of this new Order
+
+		- don't EVER use "create_orderstate" because:
 			- the new state won't be marked as the current state of the order
 			- no notification will be created or sent to the other person
 
-    - to update the description of the state of the order:
+    - to update the "description" of the state of the order:
 			use "update_orderstate" and not "update_order_state/<int:order_id>/",
 			because "update_order_state" always creates a new state and doesn't modify old ones
 

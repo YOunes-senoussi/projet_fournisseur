@@ -57,4 +57,3 @@ post delete "Store":
   -delete the account
   -delete the directory of dir_path (where the image is stored)
 
-

@@ -6,12 +6,10 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 
-from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 
 from API.models import *
-from API.more_functions import extract_params, RequestHandler, simple_Q, pop_tab
+from API.more_functions import extract_params, RequestHandler, simple_Q
 
 
 # ################ Models
@@ -55,8 +53,43 @@ def test_view(request: Request):
     except Exception as e:
         return Response(data={"error": e.__class__.__name__, "args": e.args}, status=400)
 
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def secure_view(request, format=None):
+
+    content = {'auth': str(request.auth)}
+
+    if hasattr(request.user, "client"):
+        content["client_id"] = request.user.client.id
+
+    if hasattr(request.user, "store"):
+        content["store_id"] = request.user.store.id
+
+    return Response(content)
+
+
+@api_view(['GET'])
+def get_all_client_credentials(request: Request):
+
+    return Response(
+        {"clients": Client.objects.all().values("id", "phone_number", "password", "account__auth_token")}
+    )
+
+@api_view(['GET'])
+def get_all_store_credentials(request: Request):
+
+    return Response(
+        {"stores": Store.objects.all().values("id", "phone_number", "password", "account__auth_token")}
+    )
+
+
 # ##################### Generic retrieve using GET or POST
 class GetView(APIView):
+
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request: Request, model_name: str, item_id: int = None):
         
@@ -100,15 +133,11 @@ class GetView(APIView):
 
         return Response({"aggregations": aggregations, "items": items})
 
-    def put(self, request: Request, model_name: str, item_id: int = None):
-        return Response("nothing")
-
-    def delete(self, request: Request, model_name: str, item_id: int = None):
-        return Response("nothing")
-
 
 # ################ Generic Views
 @api_view(["POST"]) # not using this for now
+# @authentication_classes([TokenAuthentication])
+# @permission_classes([IsAuthenticated])
 def get_items(request: Request, model_name: str, item_id: int = None):
 
     model = tables.get(model_name)
@@ -129,6 +158,8 @@ def get_items(request: Request, model_name: str, item_id: int = None):
 
 
 @api_view(["POST", "PUT"])
+# @authentication_classes([TokenAuthentication])
+# @permission_classes([IsAuthenticated])
 def create_item(request: Request, model_name: str):
 
     if not request.data:
@@ -146,6 +177,8 @@ def create_item(request: Request, model_name: str):
 
 
 @api_view(["POST", "PUT"])
+# @authentication_classes([TokenAuthentication])
+# @permission_classes([IsAuthenticated])
 def update_item(request: Request, model_name: str, item_id: int):
 
     if not request.data:
@@ -163,6 +196,8 @@ def update_item(request: Request, model_name: str, item_id: int):
 
 
 @api_view(["DELETE"])
+# @authentication_classes([TokenAuthentication])
+# @permission_classes([IsAuthenticated])
 def delete_item(request: Request, model_name: str, item_id: int):
 
     model = tables.get(model_name)
@@ -179,6 +214,9 @@ def delete_item(request: Request, model_name: str, item_id: int):
 # Many To Many Relationships:
 # ##################### Client Fav Stores Views
 class ClientFavStoresView(APIView):
+
+    # authentication_classes = [TokenAuthentication]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request: Request, client_id: int = None):
 
@@ -220,6 +258,9 @@ class ClientFavStoresView(APIView):
 
 # ##################### Store Fav Clients Views
 class StoreFavClientsView(APIView):
+    
+    # authentication_classes = [TokenAuthentication]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request: Request, store_id: int = None):
 
@@ -261,6 +302,9 @@ class StoreFavClientsView(APIView):
 
 # ##################### Group Clients Views
 class GroupClientsView(APIView):
+    
+    # authentication_classes = [TokenAuthentication]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request: Request, group_id: int):
 
@@ -302,6 +346,9 @@ class GroupClientsView(APIView):
 
 # ##################### Cart Products Views
 class ClientProductsView(APIView):
+    
+    # authentication_classes = [TokenAuthentication]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request: Request, client_id: int):
 
@@ -321,6 +368,9 @@ class ClientProductsView(APIView):
 
 # ##################### Order Products Views
 class OrderProductsView(APIView):
+    
+    # authentication_classes = [TokenAuthentication]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request: Request, order_id: int):
 
@@ -340,6 +390,9 @@ class OrderProductsView(APIView):
 
 # ##################### Order Coupons Views
 class OrderCouponsView(APIView):
+    
+    # authentication_classes = [TokenAuthentication]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request: Request, order_id: int):
 
@@ -359,6 +412,9 @@ class OrderCouponsView(APIView):
 
 # ##################### Coupon Clients Views
 class CouponClientsView(APIView):
+    
+    # authentication_classes = [TokenAuthentication]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request: Request, coupon_id: int, client_id: int = None):
 
@@ -410,37 +466,6 @@ def store_log_in(request: Request):
         return Response({"store_id": None, "token": None}, status=400)
 
     return Response({"store_id": store.id, "token": user.auth_token.key})
-
-
-@api_view(['GET'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
-def secure_view(request, format=None):
-
-    content = {'auth': str(request.auth)}
-
-    if hasattr(request.user, "client"):
-        content["client_id"] = request.user.client.id
-
-    if hasattr(request.user, "store"):
-        content["store_id"] = request.user.store.id
-
-    return Response(content)
-
-
-@api_view(['GET'])
-def get_all_client_credentials(request: Request):
-
-    return Response(
-        {"clients": Client.objects.all().values("id", "phone_number", "password", "account__auth_token")}
-    )
-
-@api_view(['GET'])
-def get_all_store_credentials(request: Request):
-
-    return Response(
-        {"stores": Store.objects.all().values("id", "phone_number", "password", "account__auth_token")}
-    )
 
 # ################ 
 

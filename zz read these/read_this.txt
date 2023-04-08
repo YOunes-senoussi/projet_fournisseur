@@ -1,6 +1,4 @@
 
-
-
 // get using JSON:
 //////////////////////////////////////////////////
 annotate functions and their params:

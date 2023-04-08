@@ -187,10 +187,6 @@ def delete_dir(dir_path):
         shutil.rmtree(dir_path)
 
 
-"""
-
-"""
-
 # ################ Create, Update Store (unused)
 
 """

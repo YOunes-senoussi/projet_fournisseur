@@ -1,0 +1,30 @@
+
+try these urls:
+  - GET "get_all_client_credentials/" (for testing only)
+  - GET "get_all_store_credentials/"  (for testing only)
+
+  - GET "secure_view/":
+    - for testing only.
+    - right now this is the only secure API endpoint.
+    - we'll secure all other endpoints whenever you want to.
+    - to access this endpoint you have to enclude an auth token in the header of the request.
+    - the token should be included in a header called "Authorization", ex.:
+      "Authorization": "Token f98c258e584212c24645d60f7ac2ea67260f9e8c"
+
+
+  - POST "client_log_in/" body: {"phone_number", "password"}
+  - POST "store_log_in/"  body: {"phone_number", "password"}
+
+to listen for notifications you must connect to one of these sockets:
+  - ws: "client_notification/"
+  - ws: "store_notification/"
+
+  - ex: "ws://127.0.0.1:8000/store_notification/"
+
+  - these sockets are secure, meaning you must provide 
+      an auth_token the same way as in http requests.
+  - if you try to connect to the clients socket then 
+      the token you provide must belong to a client (same with stores).
+
+  - the server uses the token to determin the user who connected to the socket.
+
